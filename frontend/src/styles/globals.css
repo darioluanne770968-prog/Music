@@ -1,0 +1,282 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --primary: 255, 51, 102;
+    --background: 255, 255, 255;
+    --foreground: 26, 27, 30;
+    --card: 255, 255, 255;
+    --card-foreground: 26, 27, 30;
+    --border: 226, 227, 229;
+    --muted: 246, 246, 247;
+    --muted-foreground: 124, 127, 135;
+  }
+
+  .dark {
+    --primary: 255, 51, 102;
+    --background: 13, 14, 16;
+    --foreground: 246, 246, 247;
+    --card: 26, 27, 30;
+    --card-foreground: 246, 246, 247;
+    --border: 54, 56, 60;
+    --muted: 36, 38, 42;
+    --muted-foreground: 160, 162, 169;
+  }
+
+  * {
+    @apply border-dark-200 dark:border-dark-700;
+  }
+
+  body {
+    @apply bg-white dark:bg-dark-950 text-dark-900 dark:text-dark-50;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-white/80 dark:bg-dark-900/80 backdrop-blur-xl;
+  }
+
+  .glass-card {
+    @apply bg-white/60 dark:bg-dark-800/60 backdrop-blur-lg rounded-2xl;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center rounded-full font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-primary {
+    @apply btn bg-primary-500 text-white hover:bg-primary-600 active:scale-95;
+  }
+
+  .btn-secondary {
+    @apply btn bg-dark-100 dark:bg-dark-800 text-dark-900 dark:text-white hover:bg-dark-200 dark:hover:bg-dark-700 active:scale-95;
+  }
+
+  .btn-ghost {
+    @apply btn text-dark-600 dark:text-dark-400 hover:bg-dark-100 dark:hover:bg-dark-800;
+  }
+
+  .input {
+    @apply w-full rounded-xl border border-dark-200 dark:border-dark-700 bg-white dark:bg-dark-800 px-4 py-3 text-dark-900 dark:text-white placeholder:text-dark-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200;
+  }
+
+  .card {
+    @apply bg-white dark:bg-dark-900 rounded-2xl shadow-sm border border-dark-100 dark:border-dark-800;
+  }
+
+  .card-hover {
+    @apply card hover:shadow-lg hover:scale-[1.02] transition-all duration-300 cursor-pointer;
+  }
+
+  .gradient-primary {
+    @apply bg-gradient-to-r from-primary-500 to-primary-600;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary-500 to-primary-400 bg-clip-text text-transparent;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--muted-foreground)) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: rgb(var(--muted-foreground));
+    border-radius: 3px;
+  }
+
+  .line-clamp-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary-400 via-primary-500 to-primary-600 bg-clip-text text-transparent;
+  }
+}
+
+@layer utilities {
+  .animate-delay-100 {
+    animation-delay: 100ms;
+  }
+
+  .animate-delay-200 {
+    animation-delay: 200ms;
+  }
+
+  .animate-delay-300 {
+    animation-delay: 300ms;
+  }
+
+  .animate-delay-400 {
+    animation-delay: 400ms;
+  }
+
+  .animate-delay-500 {
+    animation-delay: 500ms;
+  }
+
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-left {
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .safe-right {
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* Vinyl Record Animation */
+@keyframes vinyl-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.vinyl-spinning {
+  animation: vinyl-spin 3s linear infinite;
+}
+
+.vinyl-paused {
+  animation-play-state: paused;
+}
+
+/* Lyrics Highlight Animation */
+@keyframes lyrics-highlight {
+  0% {
+    background-size: 0% 100%;
+  }
+  100% {
+    background-size: 100% 100%;
+  }
+}
+
+.lyrics-highlight {
+  background: linear-gradient(90deg, rgb(var(--primary)) 50%, transparent 50%);
+  background-size: 200% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  transition: background-position 0.3s ease;
+}
+
+.lyrics-highlight.active {
+  background-position: 0 0;
+}
+
+/* Music Visualizer */
+.visualizer-bar {
+  @apply bg-gradient-to-t from-primary-500 to-primary-300 rounded-full;
+  animation: visualizer 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes visualizer {
+  0% {
+    transform: scaleY(0.3);
+  }
+  100% {
+    transform: scaleY(1);
+  }
+}
+
+/* Progress Bar Thumb */
+input[type="range"] {
+  @apply appearance-none bg-transparent cursor-pointer;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  @apply h-1 rounded-full bg-dark-200 dark:bg-dark-700;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  @apply appearance-none w-3 h-3 rounded-full bg-primary-500 -mt-1 shadow-lg;
+  transition: transform 0.15s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+input[type="range"]::-moz-range-track {
+  @apply h-1 rounded-full bg-dark-200 dark:bg-dark-700;
+}
+
+input[type="range"]::-moz-range-thumb {
+  @apply w-3 h-3 rounded-full bg-primary-500 border-0;
+}
+
+/* Skeleton Loading */
+.skeleton {
+  @apply bg-dark-200 dark:bg-dark-800 animate-pulse rounded;
+}
+
+/* Toast Styles */
+.toast-enter {
+  opacity: 0;
+  transform: translateY(-20px) scale(0.9);
+}
+
+.toast-enter-active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition: all 0.3s ease-out;
+}
+
+.toast-exit {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.toast-exit-active {
+  opacity: 0;
+  transform: translateY(-20px) scale(0.9);
+  transition: all 0.2s ease-in;
+}
