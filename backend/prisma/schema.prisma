@@ -370,3 +370,733 @@ model Chart {
 
   @@map("charts")
 }
+
+// ==================== AI Models ====================
+
+model AIComposition {
+  id            Int       @id @default(autoincrement())
+  userId        Int       @map("user_id")
+  title         String    @db.VarChar(200)
+  description   String?   @db.Text
+  inputType     String    @map("input_type") @db.VarChar(20) // humming, lyrics, style
+  inputData     String?   @map("input_data") @db.Text
+  style         String    @db.VarChar(50)
+  mood          String    @db.VarChar(50)
+  tempo         Int       @default(120)
+  musicalKey    String?   @map("musical_key") @db.VarChar(10)
+  generatedUrl  String?   @map("generated_url") @db.VarChar(500)
+  stems         Json      @default("[]")
+  status        String    @default("pending") @db.VarChar(20)
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  @@map("ai_compositions")
+}
+
+model AICover {
+  id             Int      @id @default(autoincrement())
+  userId         Int      @map("user_id")
+  originalSongId Int      @map("original_song_id")
+  voiceModelId   Int      @map("voice_model_id")
+  style          String?  @db.VarChar(50)
+  pitch          Int      @default(0)
+  generatedUrl   String?  @map("generated_url") @db.VarChar(500)
+  status         String   @default("pending") @db.VarChar(20)
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  voiceModel VoiceModel @relation(fields: [voiceModelId], references: [id])
+
+  @@map("ai_covers")
+}
+
+model VoiceModel {
+  id         Int      @id @default(autoincrement())
+  name       String   @db.VarChar(100)
+  artistName String?  @map("artist_name") @db.VarChar(100)
+  avatarUrl  String?  @map("avatar_url") @db.VarChar(500)
+  voiceType  String   @map("voice_type") @db.VarChar(20)
+  languages  Json     @default("[]")
+  samples    Json     @default("[]")
+  isOfficial Boolean  @default(false) @map("is_official")
+  usageCount Int      @default(0) @map("usage_count")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  covers AICover[]
+
+  @@map("voice_models")
+}
+
+model AIDJSession {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  name        String   @db.VarChar(100)
+  tracks      Json     @default("[]")
+  transitions Json     @default("[]")
+  settings    Json     @default("{}")
+  isPlaying   Boolean  @default(false) @map("is_playing")
+  bpm         Int      @default(128)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("ai_dj_sessions")
+}
+
+model EmotionRecord {
+  id             Int      @id @default(autoincrement())
+  userId         Int      @map("user_id")
+  detectionType  String   @map("detection_type") @db.VarChar(20)
+  primaryEmotion String   @map("primary_emotion") @db.VarChar(30)
+  intensity      Float    @default(0.5)
+  valence        Float    @default(0)
+  arousal        Float    @default(0.5)
+  playlistId     Int?     @map("playlist_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@map("emotion_records")
+}
+
+model MusicStory {
+  id         Int      @id @default(autoincrement())
+  userId     Int      @map("user_id")
+  type       String   @db.VarChar(20)
+  periodStart DateTime @map("period_start")
+  periodEnd  DateTime @map("period_end")
+  title      String   @db.VarChar(200)
+  coverImage String?  @map("cover_image") @db.VarChar(500)
+  sections   Json     @default("[]")
+  statistics Json     @default("{}")
+  insights   Json     @default("[]")
+  shareUrl   String?  @map("share_url") @db.VarChar(500)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("music_stories")
+}
+
+// ==================== Gaming Models ====================
+
+model BeatMap {
+  id         Int      @id @default(autoincrement())
+  songId     Int      @map("song_id")
+  difficulty String   @db.VarChar(20)
+  bpm        Int
+  notes      Json     @default("[]")
+  duration   Int
+  creatorId  Int?     @map("creator_id")
+  verified   Boolean  @default(false)
+  playCount  Int      @default(0) @map("play_count")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  scores GameScore[]
+
+  @@map("beat_maps")
+}
+
+model GameScore {
+  id         Int      @id @default(autoincrement())
+  beatMapId  Int      @map("beat_map_id")
+  userId     Int      @map("user_id")
+  score      Int
+  accuracy   Float
+  maxCombo   Int      @map("max_combo")
+  judgments  Json     @default("{}")
+  rank       String   @db.VarChar(5)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  beatMap BeatMap @relation(fields: [beatMapId], references: [id], onDelete: Cascade)
+
+  @@map("game_scores")
+}
+
+model GuessChallenge {
+  id          Int      @id @default(autoincrement())
+  hostId      Int      @map("host_id")
+  type        String   @db.VarChar(20)
+  mode        String   @db.VarChar(20)
+  settings    Json     @default("{}")
+  status      String   @default("waiting") @db.VarChar(20)
+  rounds      Json     @default("[]")
+  players     Json     @default("[]")
+  currentRound Int     @default(0) @map("current_round")
+  createdAt   DateTime @default(now()) @map("created_at")
+  endedAt     DateTime? @map("ended_at")
+
+  @@map("guess_challenges")
+}
+
+model MusicPet {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @unique @map("user_id")
+  name        String   @db.VarChar(50)
+  type        String   @db.VarChar(30)
+  level       Int      @default(1)
+  experience  Int      @default(0)
+  mood        Int      @default(100)
+  energy      Int      @default(100)
+  skills      Json     @default("[]")
+  accessories Json     @default("[]")
+  stage       String   @default("egg") @db.VarChar(20)
+  stats       Json     @default("{}")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("music_pets")
+}
+
+model VirtualConcert {
+  id           Int       @id @default(autoincrement())
+  artistId     Int       @map("artist_id")
+  title        String    @db.VarChar(200)
+  description  String?   @db.Text
+  coverImage   String?   @map("cover_image") @db.VarChar(500)
+  startTime    DateTime  @map("start_time")
+  duration     Int
+  venue        Json      @default("{}")
+  setlist      Json      @default("[]")
+  ticketTypes  Json      @default("[]")
+  maxCapacity  Int       @default(10000) @map("max_capacity")
+  attendees    Int       @default(0)
+  status       String    @default("upcoming") @db.VarChar(20)
+  replayUrl    String?   @map("replay_url") @db.VarChar(500)
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  @@map("virtual_concerts")
+}
+
+// ==================== Social Extended Models ====================
+
+model MusicMatch {
+  id            Int      @id @default(autoincrement())
+  userId        Int      @map("user_id")
+  matchedUserId Int      @map("matched_user_id")
+  matchScore    Int      @map("match_score")
+  commonData    Json     @default("{}")
+  status        String   @default("pending") @db.VarChar(20)
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, matchedUserId])
+  @@map("music_matches")
+}
+
+model MusicProfile {
+  userId            Int      @id @map("user_id")
+  topGenres         Json     @default("[]") @map("top_genres")
+  topArtists        Json     @default("[]") @map("top_artists")
+  personality       Json     @default("{}")
+  moodProfile       Json     @default("{}") @map("mood_profile")
+  activeHours       Json     @default("[]") @map("active_hours")
+  discoveryRate     Float    @default(0.5) @map("discovery_rate")
+  socialness        Float    @default(0.5)
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@map("music_profiles")
+}
+
+model CollaborativePlaylist {
+  id            Int      @id @default(autoincrement())
+  playlistId    Int      @unique @map("playlist_id")
+  collaborators Json     @default("[]")
+  settings      Json     @default("{}")
+  activityLog   Json     @default("[]") @map("activity_log")
+  chatRoomId    String?  @map("chat_room_id") @db.VarChar(50)
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("collaborative_playlists")
+}
+
+model TimeCapsule {
+  id             Int       @id @default(autoincrement())
+  senderId       Int       @map("sender_id")
+  recipientId    Int?      @map("recipient_id")
+  recipientEmail String?   @map("recipient_email") @db.VarChar(100)
+  songs          Json      @default("[]")
+  message        String    @db.Text
+  voiceMessage   String?   @map("voice_message") @db.VarChar(500)
+  photos         Json      @default("[]")
+  theme          Json      @default("{}")
+  unlockDate     DateTime  @map("unlock_date")
+  isOpened       Boolean   @default(false) @map("is_opened")
+  openedAt       DateTime? @map("opened_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  @@map("time_capsules")
+}
+
+model SongDanmaku {
+  id        Int      @id @default(autoincrement())
+  songId    Int      @map("song_id")
+  userId    Int      @map("user_id")
+  text      String   @db.VarChar(200)
+  timestamp Float
+  type      String   @default("text") @db.VarChar(20)
+  style     Json     @default("{}")
+  likes     Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("song_danmakus")
+}
+
+model DriftBottle {
+  id             Int       @id @default(autoincrement())
+  senderId       Int       @map("sender_id")
+  senderName     String    @map("sender_name") @db.VarChar(50)
+  songId         Int       @map("song_id")
+  message        String    @db.Text
+  mood           String?   @db.VarChar(30)
+  location       Json?
+  theme          Json      @default("{}")
+  status         String    @default("drifting") @db.VarChar(20)
+  pickerId       Int?      @map("picker_id")
+  replies        Json      @default("[]")
+  driftDuration  Int       @default(0) @map("drift_duration")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  pickedAt       DateTime? @map("picked_at")
+
+  @@map("drift_bottles")
+}
+
+model FanSupport {
+  id           Int       @id @default(autoincrement())
+  artistId     Int       @map("artist_id")
+  type         String    @db.VarChar(30)
+  title        String    @db.VarChar(200)
+  description  String?   @db.Text
+  target       Int
+  current      Int       @default(0)
+  participants Json      @default("[]")
+  rewards      Json      @default("[]")
+  startDate    DateTime  @map("start_date")
+  endDate      DateTime  @map("end_date")
+  status       String    @default("active") @db.VarChar(20)
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  @@map("fan_supports")
+}
+
+// ==================== Health Models ====================
+
+model SleepSession {
+  id             Int       @id @default(autoincrement())
+  userId         Int       @map("user_id")
+  startTime      DateTime  @map("start_time")
+  endTime        DateTime? @map("end_time")
+  soundscapeId   Int?      @map("soundscape_id")
+  playlistId     Int?      @map("playlist_id")
+  settings       Json      @default("{}")
+  sleepQuality   Int?      @map("sleep_quality")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  @@map("sleep_sessions")
+}
+
+model Soundscape {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(100)
+  description String?  @db.Text
+  category    String   @db.VarChar(30)
+  thumbnail   String?  @db.VarChar(500)
+  layers      Json     @default("[]")
+  duration    Int      @default(0)
+  isPremium   Boolean  @default(false) @map("is_premium")
+  downloads   Int      @default(0)
+  rating      Float    @default(0)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("soundscapes")
+}
+
+model MeditationSession {
+  id            Int      @id @default(autoincrement())
+  title         String   @db.VarChar(200)
+  description   String?  @db.Text
+  type          String   @db.VarChar(30)
+  category      String   @db.VarChar(30)
+  duration      Int
+  instructorId  Int?     @map("instructor_id")
+  audioUrl      String   @map("audio_url") @db.VarChar(500)
+  backgroundMusic String? @map("background_music") @db.VarChar(500)
+  guidedSteps   Json     @default("[]") @map("guided_steps")
+  level         String   @default("beginner") @db.VarChar(20)
+  benefits      Json     @default("[]")
+  thumbnail     String?  @db.VarChar(500)
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("meditation_sessions")
+}
+
+model FocusSession {
+  id             Int       @id @default(autoincrement())
+  userId         Int       @map("user_id")
+  technique      String    @db.VarChar(30)
+  startTime      DateTime  @map("start_time")
+  endTime        DateTime? @map("end_time")
+  workPeriods    Int       @default(0) @map("work_periods")
+  totalFocusTime Int       @default(0) @map("total_focus_time")
+  totalBreakTime Int       @default(0) @map("total_break_time")
+  songsPlayed    Json      @default("[]") @map("songs_played")
+  interruptions  Int       @default(0)
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  @@map("focus_sessions")
+}
+
+model WorkoutSession {
+  id            Int       @id @default(autoincrement())
+  userId        Int       @map("user_id")
+  activityType  String    @map("activity_type") @db.VarChar(30)
+  startTime     DateTime  @map("start_time")
+  endTime       DateTime? @map("end_time")
+  duration      Int       @default(0)
+  distance      Float?
+  calories      Int?
+  avgHeartRate  Int?      @map("avg_heart_rate")
+  maxHeartRate  Int?      @map("max_heart_rate")
+  avgBPM        Int?      @map("avg_bpm")
+  songsPlayed   Json      @default("[]") @map("songs_played")
+  zones         Json      @default("[]")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  @@map("workout_sessions")
+}
+
+model HearingData {
+  id              Int      @id @default(autoincrement())
+  userId          Int      @map("user_id")
+  date            DateTime @db.Date
+  dailyExposure   Int      @default(0) @map("daily_exposure")
+  averageVolume   Int      @default(0) @map("average_volume")
+  peakVolume      Int      @default(0) @map("peak_volume")
+  safePercentage  Float    @default(100) @map("safe_percentage")
+  warnings        Json     @default("[]")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, date])
+  @@map("hearing_data")
+}
+
+model MoodEntry {
+  id          Int       @id @default(autoincrement())
+  userId      Int       @map("user_id")
+  mood        String    @db.VarChar(30)
+  energy      Int       @default(3)
+  notes       String?   @db.Text
+  triggers    Json      @default("[]")
+  songId      Int?      @map("song_id")
+  activity    String?   @db.VarChar(50)
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@map("mood_entries")
+}
+
+// ==================== Content Models ====================
+
+model Podcast {
+  id             Int       @id @default(autoincrement())
+  title          String    @db.VarChar(200)
+  description    String?   @db.Text
+  coverUrl       String?   @map("cover_url") @db.VarChar(500)
+  authorId       Int       @map("author_id")
+  category       String    @db.VarChar(50)
+  language       String    @default("zh-CN") @db.VarChar(10)
+  explicit       Boolean   @default(false)
+  subscribers    Int       @default(0)
+  rating         Float     @default(0)
+  ratingCount    Int       @default(0) @map("rating_count")
+  website        String?   @db.VarChar(500)
+  rssFeed        String?   @map("rss_feed") @db.VarChar(500)
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  episodes PodcastEpisode[]
+
+  @@map("podcasts")
+}
+
+model PodcastEpisode {
+  id            Int       @id @default(autoincrement())
+  podcastId     Int       @map("podcast_id")
+  title         String    @db.VarChar(200)
+  description   String?   @db.Text
+  audioUrl      String    @map("audio_url") @db.VarChar(500)
+  duration      Int
+  publishedAt   DateTime  @map("published_at")
+  episodeNumber Int?      @map("episode_number")
+  seasonNumber  Int?      @map("season_number")
+  coverUrl      String?   @map("cover_url") @db.VarChar(500)
+  guests        Json      @default("[]")
+  topics        Json      @default("[]")
+  chapters      Json      @default("[]")
+  transcript    String?   @db.Text
+  playCount     Int       @default(0) @map("play_count")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  podcast Podcast @relation(fields: [podcastId], references: [id], onDelete: Cascade)
+
+  @@map("podcast_episodes")
+}
+
+model Audiobook {
+  id            Int       @id @default(autoincrement())
+  title         String    @db.VarChar(200)
+  subtitle      String?   @db.VarChar(200)
+  author        String    @db.VarChar(100)
+  narrator      String    @db.VarChar(100)
+  coverUrl      String?   @map("cover_url") @db.VarChar(500)
+  description   String?   @db.Text
+  publisher     String    @db.VarChar(100)
+  publishedDate DateTime? @map("published_date")
+  duration      Int
+  chapters      Json      @default("[]")
+  language      String    @default("zh-CN") @db.VarChar(10)
+  genres        Json      @default("[]")
+  seriesId      Int?      @map("series_id")
+  seriesOrder   Int?      @map("series_order")
+  rating        Float     @default(0)
+  ratingCount   Int       @default(0) @map("rating_count")
+  price         Float     @default(0)
+  sampleUrl     String?   @map("sample_url") @db.VarChar(500)
+  abridged      Boolean   @default(false)
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  @@map("audiobooks")
+}
+
+model MusicCourse {
+  id             Int      @id @default(autoincrement())
+  title          String   @db.VarChar(200)
+  description    String?  @db.Text
+  coverUrl       String?  @map("cover_url") @db.VarChar(500)
+  instructorId   Int      @map("instructor_id")
+  category       String   @db.VarChar(50)
+  level          String   @default("beginner") @db.VarChar(20)
+  duration       Int
+  lessonsCount   Int      @default(0) @map("lessons_count")
+  lessons        Json     @default("[]")
+  skills         Json     @default("[]")
+  requirements   Json     @default("[]")
+  language       String   @default("zh-CN") @db.VarChar(10)
+  rating         Float    @default(0)
+  ratingCount    Int      @default(0) @map("rating_count")
+  enrolledCount  Int      @default(0) @map("enrolled_count")
+  price          Float    @default(0)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@map("music_courses")
+}
+
+model ConcertStream {
+  id            Int       @id @default(autoincrement())
+  title         String    @db.VarChar(200)
+  description   String?   @db.Text
+  artistId      Int       @map("artist_id")
+  coverUrl      String?   @map("cover_url") @db.VarChar(500)
+  streamUrl     String?   @map("stream_url") @db.VarChar(500)
+  chatEnabled   Boolean   @default(true) @map("chat_enabled")
+  startTime     DateTime  @map("start_time")
+  endTime       DateTime? @map("end_time")
+  duration      Int?
+  status        String    @default("upcoming") @db.VarChar(20)
+  viewerCount   Int       @default(0) @map("viewer_count")
+  peakViewers   Int       @default(0) @map("peak_viewers")
+  venue         String?   @db.VarChar(200)
+  ticketRequired Boolean  @default(false) @map("ticket_required")
+  ticketPrice   Float?    @map("ticket_price")
+  replayUrl     String?   @map("replay_url") @db.VarChar(500)
+  setlist       Json      @default("[]")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  @@map("concert_streams")
+}
+
+// ==================== Creator Economy Models ====================
+
+model ArtistProfile {
+  id            Int       @id @default(autoincrement())
+  userId        Int       @unique @map("user_id")
+  stageName     String    @map("stage_name") @db.VarChar(100)
+  realName      String?   @map("real_name") @db.VarChar(100)
+  bio           String?   @db.Text
+  avatarUrl     String?   @map("avatar_url") @db.VarChar(500)
+  bannerUrl     String?   @map("banner_url") @db.VarChar(500)
+  genres        Json      @default("[]")
+  labels        Json      @default("[]")
+  socialLinks   Json      @default("[]") @map("social_links")
+  verified      Boolean   @default(false)
+  verifiedAt    DateTime? @map("verified_at")
+  location      String?   @db.VarChar(100)
+  website       String?   @db.VarChar(500)
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  @@map("artist_profiles")
+}
+
+model Release {
+  id            Int       @id @default(autoincrement())
+  artistId      Int       @map("artist_id")
+  type          String    @db.VarChar(20)
+  title         String    @db.VarChar(200)
+  coverUrl      String?   @map("cover_url") @db.VarChar(500)
+  tracks        Json      @default("[]")
+  releaseDate   DateTime  @map("release_date")
+  status        String    @default("draft") @db.VarChar(20)
+  platforms     Json      @default("[]")
+  metadata      Json      @default("{}")
+  preSaveCount  Int       @default(0) @map("pre_save_count")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  @@map("releases")
+}
+
+model PaidContent {
+  id          Int      @id @default(autoincrement())
+  artistId    Int      @map("artist_id")
+  type        String   @db.VarChar(30)
+  title       String   @db.VarChar(200)
+  description String?  @db.Text
+  coverUrl    String?  @map("cover_url") @db.VarChar(500)
+  content     String   @db.VarChar(500)
+  price       Float
+  currency    String   @default("CNY") @db.VarChar(10)
+  tierId      Int?     @map("tier_id")
+  purchases   Int      @default(0)
+  revenue     Float    @default(0)
+  status      String   @default("draft") @db.VarChar(20)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("paid_contents")
+}
+
+model SubscriptionTier {
+  id           Int      @id @default(autoincrement())
+  artistId     Int      @map("artist_id")
+  name         String   @db.VarChar(100)
+  description  String?  @db.Text
+  price        Float
+  currency     String   @default("CNY") @db.VarChar(10)
+  period       String   @default("monthly") @db.VarChar(20)
+  benefits     Json     @default("[]")
+  subscribers  Int      @default(0)
+  icon         String?  @db.VarChar(100)
+  color        String?  @db.VarChar(20)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("subscription_tiers")
+}
+
+model MusicNFT {
+  id              Int      @id @default(autoincrement())
+  artistId        Int      @map("artist_id")
+  tokenId         String   @unique @map("token_id") @db.VarChar(100)
+  contractAddress String   @map("contract_address") @db.VarChar(100)
+  blockchain      String   @db.VarChar(30)
+  title           String   @db.VarChar(200)
+  description     String?  @db.Text
+  mediaUrl        String   @map("media_url") @db.VarChar(500)
+  coverUrl        String?  @map("cover_url") @db.VarChar(500)
+  type            String   @db.VarChar(30)
+  editionType     String   @map("edition_type") @db.VarChar(20)
+  totalEditions   Int?     @map("total_editions")
+  mintedEditions  Int      @default(0) @map("minted_editions")
+  royaltyPercent  Float    @default(10) @map("royalty_percent")
+  price           Float?
+  currency        String?  @db.VarChar(20)
+  ownerId         Int?     @map("owner_id")
+  attributes      Json     @default("[]")
+  transactions    Json     @default("[]")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@map("music_nfts")
+}
+
+model LiveTip {
+  id          Int      @id @default(autoincrement())
+  sessionId   Int      @map("session_id")
+  userId      Int      @map("user_id")
+  artistId    Int      @map("artist_id")
+  amount      Float
+  currency    String   @default("CNY") @db.VarChar(10)
+  giftId      Int?     @map("gift_id")
+  message     String?  @db.VarChar(200)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("live_tips")
+}
+
+model Royalty {
+  id          Int      @id @default(autoincrement())
+  artistId    Int      @map("artist_id")
+  songId      Int      @map("song_id")
+  source      String   @db.VarChar(50)
+  streams     Int      @default(0)
+  amount      Float    @default(0)
+  currency    String   @default("CNY") @db.VarChar(10)
+  period      DateTime @db.Date
+  status      String   @default("pending") @db.VarChar(20)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("royalties")
+}
+
+model Payout {
+  id            Int       @id @default(autoincrement())
+  artistId      Int       @map("artist_id")
+  amount        Float
+  currency      String    @default("CNY") @db.VarChar(10)
+  method        String    @db.VarChar(30)
+  status        String    @default("pending") @db.VarChar(20)
+  transactionId String?   @map("transaction_id") @db.VarChar(100)
+  createdAt     DateTime  @default(now()) @map("created_at")
+  completedAt   DateTime? @map("completed_at")
+
+  @@map("payouts")
+}
+
+// ==================== Platform Models ====================
+
+model ConnectedDevice {
+  id            Int       @id @default(autoincrement())
+  userId        Int       @map("user_id")
+  name          String    @db.VarChar(100)
+  type          String    @db.VarChar(30)
+  platform      String    @db.VarChar(30)
+  isActive      Boolean   @default(false) @map("is_active")
+  capabilities  Json      @default("{}")
+  settings      Json      @default("{}")
+  lastActiveAt  DateTime  @default(now()) @map("last_active_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  @@map("connected_devices")
+}
+
+model SmartHomeIntegration {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  platform    String   @db.VarChar(30)
+  isConnected Boolean  @default(true) @map("is_connected")
+  devices     Json     @default("[]")
+  routines    Json     @default("[]")
+  scenes      Json     @default("[]")
+  connectedAt DateTime @default(now()) @map("connected_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, platform])
+  @@map("smart_home_integrations")
+}
+
+model OfflineDownload {
+  id           Int       @id @default(autoincrement())
+  userId       Int       @map("user_id")
+  type         String    @db.VarChar(30)
+  referenceId  Int       @map("reference_id")
+  title        String    @db.VarChar(200)
+  coverUrl     String?   @map("cover_url") @db.VarChar(500)
+  size         BigInt
+  status       String    @default("completed") @db.VarChar(20)
+  downloadedAt DateTime  @default(now()) @map("downloaded_at")
+  lastPlayedAt DateTime? @map("last_played_at")
+  playCount    Int       @default(0) @map("play_count")
+  expiresAt    DateTime? @map("expires_at")
+
+  @@map("offline_downloads")
+}
