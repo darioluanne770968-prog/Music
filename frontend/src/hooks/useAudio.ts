@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react'
 import { Howl, Howler } from 'howler'
 import { usePlayerStore } from '@/stores/playerStore'
+import { useStatsStore } from '@/stores/statsStore'
 import { resumeAudioContext } from '@/utils/audio'
 
 interface UseAudioOptions {
@@ -14,6 +15,8 @@ interface UseAudioOptions {
 export function useAudio(options: UseAudioOptions = {}) {
   const howlRef = useRef<Howl | null>(null)
   const animationRef = useRef<number | null>(null)
+  const playStartTime = useRef<number>(0)
+  const { recordPlay } = useStatsStore()
 
   const {
     currentSong,
@@ -22,6 +25,7 @@ export function useAudio(options: UseAudioOptions = {}) {
     isMuted,
     playbackRate,
     playMode,
+    seekTime,
     setIsPlaying,
     setCurrentTime,
     setDuration,
@@ -56,72 +60,126 @@ export function useAudio(options: UseAudioOptions = {}) {
     setIsLoading(true)
     setError(null)
 
-    // In a real app, you would fetch the actual URL from the API
-    const audioUrl = `/api/songs/${currentSong.id}/url`
+    // Get audio URL from Netease API
+    const loadAudio = async () => {
+      try {
+        let audioUrl = currentSong.url // Use direct URL if available
 
-    const howl = new Howl({
-      src: [audioUrl],
-      html5: true, // Use HTML5 Audio for streaming
-      preload: true,
-      volume: isMuted ? 0 : volume,
-      rate: playbackRate,
-      onload: () => {
-        setDuration(howl.duration())
-        setIsLoading(false)
-        options.onDurationChange?.(howl.duration())
-      },
-      onplay: () => {
-        setIsPlaying(true)
-        resumeAudioContext()
-        animationRef.current = requestAnimationFrame(updateTime)
-      },
-      onpause: () => {
-        setIsPlaying(false)
-        if (animationRef.current) {
-          cancelAnimationFrame(animationRef.current)
+        // Try to fetch from Netease API
+        if (!audioUrl) {
+          try {
+            const response = await fetch(`/api/song/url/v1?id=${currentSong.id}&level=exhigh`)
+            const data = await response.json()
+            if (data.code === 200 && data.data?.[0]?.url) {
+              audioUrl = data.data[0].url
+            }
+          } catch {
+            console.log('API not available, using fallback')
+          }
         }
-      },
-      onstop: () => {
-        setIsPlaying(false)
-        setCurrentTime(0)
-        if (animationRef.current) {
-          cancelAnimationFrame(animationRef.current)
-        }
-      },
-      onend: () => {
-        if (animationRef.current) {
-          cancelAnimationFrame(animationRef.current)
-        }
-        options.onEnded?.()
 
-        // Handle play mode
-        if (playMode === 'single') {
-          howl.seek(0)
+        if (!audioUrl) {
+          throw new Error('无法获取音频地址，可能需要 VIP')
+        }
+
+        const howl = new Howl({
+          src: [audioUrl],
+          html5: true, // Use HTML5 Audio for streaming
+          preload: true,
+          volume: isMuted ? 0 : volume,
+          rate: playbackRate,
+          onload: () => {
+            setDuration(howl.duration())
+            setIsLoading(false)
+            options.onDurationChange?.(howl.duration())
+          },
+          onplay: () => {
+            // Check if we actually want to be playing
+            const currentState = usePlayerStore.getState()
+            if (!currentState.isPlaying) {
+              // User paused but something triggered play - pause again
+              howl.pause()
+              return
+            }
+            // Track play start time for stats
+            playStartTime.current = Date.now()
+            resumeAudioContext()
+            animationRef.current = requestAnimationFrame(updateTime)
+          },
+          onpause: () => {
+            setIsPlaying(false)
+            if (animationRef.current) {
+              cancelAnimationFrame(animationRef.current)
+            }
+          },
+          onstop: () => {
+            setIsPlaying(false)
+            setCurrentTime(0)
+            if (animationRef.current) {
+              cancelAnimationFrame(animationRef.current)
+            }
+          },
+          onend: () => {
+            if (animationRef.current) {
+              cancelAnimationFrame(animationRef.current)
+            }
+
+            // Record play stats
+            if (currentSong && playStartTime.current > 0) {
+              const playDuration = Math.floor((Date.now() - playStartTime.current) / 1000)
+              if (playDuration > 10) { // Only record if played more than 10 seconds
+                recordPlay({
+                  id: currentSong.id,
+                  name: currentSong.name,
+                  artist: currentSong.artist?.name || currentSong.artist || '未知歌手',
+                  artistId: currentSong.artist?.id,
+                  album: currentSong.album,
+                  albumId: currentSong.albumId,
+                  cover: currentSong.cover,
+                }, playDuration)
+              }
+              playStartTime.current = 0
+            }
+
+            options.onEnded?.()
+
+            // Handle play mode
+            if (playMode === 'single') {
+              howl.seek(0)
+              howl.play()
+            } else {
+              playNext()
+            }
+          },
+          onloaderror: (_, error) => {
+            const errorMsg = `加载失败: ${error}`
+            setError(errorMsg)
+            setIsLoading(false)
+            options.onError?.(errorMsg)
+          },
+          onplayerror: (_, error) => {
+            const errorMsg = `播放失败: ${error}`
+            setError(errorMsg)
+            setIsPlaying(false)
+            options.onError?.(errorMsg)
+          },
+        })
+
+        howlRef.current = howl
+
+        // Auto play if isPlaying was true
+        if (isPlaying) {
           howl.play()
-        } else {
-          playNext()
         }
-      },
-      onloaderror: (_, error) => {
-        const errorMsg = `加载失败: ${error}`
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : '加载音频失败'
         setError(errorMsg)
         setIsLoading(false)
         options.onError?.(errorMsg)
-      },
-      onplayerror: (_, error) => {
-        const errorMsg = `播放失败: ${error}`
-        setError(errorMsg)
-        setIsPlaying(false)
-        options.onError?.(errorMsg)
-      },
-    })
-
-    howlRef.current = howl
-
-    // Auto play if isPlaying was true
-    if (isPlaying) {
-      howl.play()
+      }
     }
+
+    loadAudio()
 
     return () => {
       if (animationRef.current) {
@@ -134,9 +192,13 @@ export function useAudio(options: UseAudioOptions = {}) {
   useEffect(() => {
     if (!howlRef.current) return
 
-    if (isPlaying && !howlRef.current.playing()) {
-      howlRef.current.play()
-    } else if (!isPlaying && howlRef.current.playing()) {
+    if (isPlaying) {
+      // Only play if not already playing
+      if (!howlRef.current.playing()) {
+        howlRef.current.play()
+      }
+    } else {
+      // Always pause when isPlaying is false
       howlRef.current.pause()
     }
   }, [isPlaying])
@@ -155,6 +217,15 @@ export function useAudio(options: UseAudioOptions = {}) {
       howlRef.current.rate(playbackRate)
     }
   }, [playbackRate])
+
+  // Handle seek requests
+  useEffect(() => {
+    if (seekTime !== null && howlRef.current) {
+      howlRef.current.seek(seekTime)
+      // Clear the seek request
+      usePlayerStore.setState({ seekTime: null })
+    }
+  }, [seekTime])
 
   // Seek function
   const seek = useCallback((time: number) => {

@@ -10,14 +10,16 @@ export default defineConfig({
     },
   },
   server: {
-    port: 3000,
+    port: 5174,
+    host: true, // 允许局域网访问
     proxy: {
       '/api': {
-        target: 'http://localhost:4000',
+        target: 'http://localhost:3000',
         changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
       },
       '/socket.io': {
-        target: 'http://localhost:4000',
+        target: 'http://localhost:3000',
         ws: true,
       },
     },

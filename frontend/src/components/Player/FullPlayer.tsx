@@ -5,7 +5,11 @@ import { Cover } from '@/components/common/Avatar'
 import { PlayButton, IconButton } from '@/components/common/Button'
 import { ProgressBar } from './ProgressBar'
 import { VolumeControl } from './VolumeControl'
-import { LyricsDisplay } from '@/components/Lyrics/LyricsDisplay'
+import { LyricsDisplay } from '@/components/Player/LyricsDisplay'
+import { CommentsDrawer } from '@/components/Comments/CommentsDrawer'
+import { AudioVisualizer } from '@/components/Player/AudioVisualizer'
+import { Equalizer } from '@/components/Player/Equalizer'
+import { SleepTimer } from '@/components/Player/SleepTimer'
 import { formatDuration } from '@/utils/format'
 import type { PlayMode } from '@/types'
 
@@ -66,7 +70,7 @@ export const FullPlayer: React.FC = () => {
     playNext,
     playPrevious,
     setPlayMode,
-    setCurrentTime,
+    seekTo,
     isFullScreen,
     toggleFullScreen,
     isShowLyrics,
@@ -75,6 +79,9 @@ export const FullPlayer: React.FC = () => {
   } = usePlayerStore()
 
   const [showVolumeControl, setShowVolumeControl] = useState(false)
+  const [showComments, setShowComments] = useState(false)
+  const [showEqualizer, setShowEqualizer] = useState(false)
+  const [showSleepTimer, setShowSleepTimer] = useState(false)
 
   if (!currentSong || !isFullScreen) return null
 
@@ -129,83 +136,112 @@ export const FullPlayer: React.FC = () => {
             </IconButton>
           </div>
 
-          {/* Main Content Area */}
-          <div className="flex-1 flex flex-col items-center justify-center px-8">
-            {isShowLyrics ? (
-              <LyricsDisplay
-                currentTime={currentTime}
-                onSeek={setCurrentTime}
-                className="w-full max-w-lg h-[60vh]"
-              />
-            ) : (
-              <>
-                {/* Album Cover */}
-                <motion.div
-                  animate={{ rotate: isPlaying ? 360 : 0 }}
-                  transition={{
-                    duration: 20,
-                    repeat: isPlaying ? Infinity : 0,
-                    ease: 'linear',
-                  }}
-                  className="relative w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80"
+          {/* Main Content Area - Dual column on desktop */}
+          <div className="flex-1 flex flex-col lg:flex-row items-center justify-center px-4 lg:px-12 gap-8 lg:gap-16 overflow-hidden">
+            {/* Left Column - Cover & Info */}
+            <div className={`flex flex-col items-center ${isShowLyrics ? 'hidden lg:flex' : ''} lg:w-1/2`}>
+              {/* Album Cover - Vinyl style */}
+              <motion.div
+                animate={{ rotate: isPlaying ? 360 : 0 }}
+                transition={{
+                  duration: 20,
+                  repeat: isPlaying ? Infinity : 0,
+                  ease: 'linear',
+                }}
+                className="relative w-56 h-56 sm:w-64 sm:h-64 lg:w-80 lg:h-80"
+              >
+                {/* Outer ring glow */}
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary-500/20 to-accent-purple/20 blur-xl" />
+                {/* Vinyl base */}
+                <div className="absolute inset-0 rounded-full bg-dark-800 shadow-2xl" />
+                {/* Grooves effect */}
+                <div className="absolute inset-2 rounded-full border border-white/5" />
+                <div className="absolute inset-6 rounded-full border border-white/5" />
+                {/* Cover image */}
+                <div className="absolute inset-8 rounded-full overflow-hidden ring-2 ring-white/10">
+                  <img
+                    src={currentSong.cover || currentSong.album?.cover || '/default-cover.jpg'}
+                    alt={currentSong.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                {/* Center hole */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-6 h-6 rounded-full bg-dark-950 border-2 border-dark-700" />
+                </div>
+              </motion.div>
+
+              {/* Song Info */}
+              <div className="mt-8 text-center">
+                <h2 className="text-xl lg:text-2xl font-bold text-white">{currentSong.name}</h2>
+                <p className="mt-2 text-white/60">{currentSong.artist.name}</p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-6 mt-6">
+                <IconButton
+                  label="喜欢"
+                  variant="ghost"
+                  isActive={currentSong.isLiked}
                 >
-                  <div className="absolute inset-0 rounded-full bg-dark-800 shadow-2xl" />
-                  <div className="absolute inset-4 rounded-full overflow-hidden">
-                    <img
-                      src={currentSong.cover || currentSong.album?.cover || '/default-cover.jpg'}
-                      alt={currentSong.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  {/* Center hole */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-8 h-8 rounded-full bg-dark-950 border-4 border-dark-800" />
-                  </div>
-                </motion.div>
-
-                {/* Song Info */}
-                <div className="mt-8 text-center">
-                  <h2 className="text-xl font-bold text-white">{currentSong.name}</h2>
-                  <p className="mt-1 text-white/60">{currentSong.artist.name}</p>
-                </div>
-
-                {/* Like & Comment Buttons */}
-                <div className="flex items-center gap-6 mt-6">
-                  <IconButton
-                    label="喜欢"
-                    variant="ghost"
-                    isActive={currentSong.isLiked}
+                  <svg
+                    className={`w-6 h-6 ${currentSong.isLiked ? 'text-primary-500' : 'text-white'}`}
+                    viewBox="0 0 24 24"
+                    fill={currentSong.isLiked ? 'currentColor' : 'none'}
+                    stroke="currentColor"
+                    strokeWidth={2}
                   >
-                    <svg
-                      className={`w-6 h-6 ${currentSong.isLiked ? 'text-primary-500' : 'text-white'}`}
-                      viewBox="0 0 24 24"
-                      fill={currentSong.isLiked ? 'currentColor' : 'none'}
-                      stroke="currentColor"
-                      strokeWidth={2}
-                    >
-                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                    </svg>
-                  </IconButton>
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                  </svg>
+                </IconButton>
 
-                  <IconButton label="评论" variant="ghost">
-                    <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                      <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
-                    </svg>
-                  </IconButton>
+                <IconButton label="评论" variant="ghost" onClick={() => setShowComments(true)}>
+                  <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
+                  </svg>
+                </IconButton>
 
-                  <IconButton
-                    label="歌词"
-                    variant="ghost"
-                    isActive={isShowLyrics}
-                    onClick={() => setShowLyrics(true)}
-                  >
-                    <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M3 9h14V7H3v2zm0 4h14v-2H3v2zm0 4h10v-2H3v2zm16-4h-2v4h-4v2h4v4h2v-4h4v-2h-4v-4z" />
-                    </svg>
-                  </IconButton>
-                </div>
-              </>
-            )}
+                {/* Toggle lyrics on mobile */}
+                <IconButton
+                  label="歌词"
+                  variant="ghost"
+                  isActive={isShowLyrics}
+                  onClick={() => setShowLyrics(!isShowLyrics)}
+                  className="lg:hidden"
+                >
+                  <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M3 9h14V7H3v2zm0 4h14v-2H3v2zm0 4h10v-2H3v2zm16-4h-2v4h-4v2h4v4h2v-4h4v-2h-4v-4z" />
+                  </svg>
+                </IconButton>
+              </div>
+            </div>
+
+            {/* Right Column - Lyrics (always visible on desktop, toggle on mobile) */}
+            <div className={`w-full lg:w-1/2 h-full max-h-[50vh] lg:max-h-full ${isShowLyrics ? '' : 'hidden lg:block'}`}>
+              <div className="h-full flex flex-col">
+                {/* Mobile back button */}
+                <button
+                  onClick={() => setShowLyrics(false)}
+                  className="lg:hidden flex items-center gap-2 text-white/60 mb-4"
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                  </svg>
+                  <span className="text-sm">返回</span>
+                </button>
+
+                <LyricsDisplay
+                  currentTime={currentTime}
+                  onSeek={seekTo}
+                  className="flex-1 lyrics-mask"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Audio Visualizer */}
+          <div className="px-6 h-16">
+            <AudioVisualizer type="bars" barCount={48} />
           </div>
 
           {/* Controls */}
@@ -214,7 +250,7 @@ export const FullPlayer: React.FC = () => {
             <ProgressBar
               currentTime={currentTime}
               duration={duration}
-              onSeek={setCurrentTime}
+              onSeek={seekTo}
             />
 
             {/* Main Controls */}
@@ -273,7 +309,13 @@ export const FullPlayer: React.FC = () => {
                 )}
               </div>
 
-              <IconButton label="定时关闭" variant="ghost">
+              <IconButton label="均衡器" variant="ghost" onClick={() => setShowEqualizer(true)}>
+                <svg className="w-5 h-5 text-white/60" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z" />
+                </svg>
+              </IconButton>
+
+              <IconButton label="定时关闭" variant="ghost" onClick={() => setShowSleepTimer(true)}>
                 <svg className="w-5 h-5 text-white/60" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
                 </svg>
@@ -293,6 +335,15 @@ export const FullPlayer: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Comments Drawer */}
+        <CommentsDrawer isOpen={showComments} onClose={() => setShowComments(false)} />
+
+        {/* Equalizer Drawer */}
+        <Equalizer isOpen={showEqualizer} onClose={() => setShowEqualizer(false)} />
+
+        {/* Sleep Timer Drawer */}
+        <SleepTimer isOpen={showSleepTimer} onClose={() => setShowSleepTimer(false)} />
       </motion.div>
     </AnimatePresence>
   )

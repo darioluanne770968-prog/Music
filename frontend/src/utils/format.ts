@@ -30,6 +30,11 @@ export function formatNumber(num: number): string {
 }
 
 /**
+ * Alias for formatNumber - format play count
+ */
+export const formatPlayCount = formatNumber
+
+/**
  * Format date to relative time (e.g., 刚刚, 5分钟前, 昨天)
  */
 export function formatRelativeTime(date: string | Date): string {

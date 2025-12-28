@@ -6,6 +6,22 @@ import { optionalAuth, AuthRequest } from '../middlewares/auth.js'
 const router = Router()
 const prisma = new PrismaClient()
 
+// Get hot artists (must be before /:id)
+router.get('/hot', asyncHandler(async (req: AuthRequest, res: Response) => {
+  const { limit = '50' } = req.query
+
+  const artists = await prisma.artist.findMany({
+    orderBy: { followerCount: 'desc' },
+    take: parseInt(limit as string),
+  })
+
+  res.json({
+    code: 200,
+    message: 'success',
+    data: artists,
+  })
+}))
+
 // Get artist detail
 router.get('/:id', asyncHandler(async (req: AuthRequest, res: Response) => {
   const artistId = parseInt(req.params.id)
@@ -128,22 +144,6 @@ router.get('/:id/mvs', asyncHandler(async (req: AuthRequest, res: Response) => {
       ...mv,
       playCount: Number(mv.playCount),
     })),
-  })
-}))
-
-// Get hot artists
-router.get('/hot', asyncHandler(async (req: AuthRequest, res: Response) => {
-  const { limit = '50' } = req.query
-
-  const artists = await prisma.artist.findMany({
-    orderBy: { followerCount: 'desc' },
-    take: parseInt(limit as string),
-  })
-
-  res.json({
-    code: 200,
-    message: 'success',
-    data: artists,
   })
 }))
 

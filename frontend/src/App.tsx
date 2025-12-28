@@ -1,13 +1,30 @@
 import React, { Suspense, lazy } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { MiniPlayer } from '@/components/Player/MiniPlayer'
 import { FullPlayer } from '@/components/Player/FullPlayer'
+import { PlayQueue } from '@/components/Player/PlayQueue'
+import { Sidebar } from '@/components/Layout/Sidebar'
 import { usePlayerStore } from '@/stores/playerStore'
+import { useAudio } from '@/hooks/useAudio'
 
 // Lazy load pages
 const HomePage = lazy(() => import('@/pages/Home/HomePage'))
 const SearchPage = lazy(() => import('@/pages/Search/SearchPage'))
+const ExplorePage = lazy(() => import('@/pages/Explore/ExplorePage'))
+const LibraryPage = lazy(() => import('@/pages/Library/LibraryPage'))
+const PlaylistPage = lazy(() => import('@/pages/Playlist/PlaylistPage'))
+const ArtistPage = lazy(() => import('@/pages/Artist/ArtistPage'))
+const AlbumPage = lazy(() => import('@/pages/Album/AlbumPage'))
+const ToplistPage = lazy(() => import('@/pages/Toplist/ToplistPage'))
+const DailyPage = lazy(() => import('@/pages/Discover/DailyPage'))
+const FMPage = lazy(() => import('@/pages/Discover/FMPage'))
+const MVPage = lazy(() => import('@/pages/MV/MVPage'))
+const StatsPage = lazy(() => import('@/pages/Stats/StatsPage'))
+const DownloadsPage = lazy(() => import('@/pages/Downloads/DownloadsPage'))
+const SmartPlaylistPage = lazy(() => import('@/pages/SmartPlaylist/SmartPlaylistPage'))
+const RecognitionPage = lazy(() => import('@/pages/Recognition/RecognitionPage'))
+const ListenTogetherPage = lazy(() => import('@/pages/ListenTogether/ListenTogetherPage'))
 
 // Loading fallback
 const PageLoader = () => (
@@ -16,9 +33,10 @@ const PageLoader = () => (
   </div>
 )
 
-// Bottom Navigation
+// Bottom Navigation (mobile only)
 const BottomNav: React.FC = () => {
-  const [activeTab, setActiveTab] = React.useState('home')
+  const location = useLocation()
+  const navigate = useNavigate()
 
   const tabs = [
     {
@@ -64,25 +82,21 @@ const BottomNav: React.FC = () => {
   ]
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-30 bg-white/80 dark:bg-dark-950/80 backdrop-blur-xl border-t border-dark-100 dark:border-dark-800 safe-bottom">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-dark-950/90 backdrop-blur-xl border-t border-white/5 safe-bottom">
       <div className="flex items-center justify-around py-2">
         {tabs.map((tab) => {
-          const isActive = activeTab === tab.id
+          const isActive = location.pathname === tab.path
           return (
-            <a
+            <button
               key={tab.id}
-              href={tab.path}
-              className={`flex flex-col items-center gap-0.5 px-4 py-1 ${
-                isActive ? 'text-primary-500' : 'text-dark-500 dark:text-dark-400'
+              onClick={() => navigate(tab.path)}
+              className={`flex flex-col items-center gap-0.5 px-4 py-1 transition-colors ${
+                isActive ? 'text-primary-500' : 'text-white/40'
               }`}
-              onClick={(e) => {
-                e.preventDefault()
-                setActiveTab(tab.id)
-              }}
             >
               {tab.icon(isActive)}
               <span className="text-xs">{tab.label}</span>
-            </a>
+            </button>
           )
         })}
       </div>
@@ -92,42 +106,68 @@ const BottomNav: React.FC = () => {
 
 // Main App
 const App: React.FC = () => {
-  const { currentSong, isFullScreen } = usePlayerStore()
+  const { currentSong, isFullScreen, isShowQueue, setShowQueue } = usePlayerStore()
+
+  // Initialize audio playback
+  useAudio()
 
   return (
-    <div className="min-h-screen bg-white dark:bg-dark-950">
+    <div className="min-h-screen bg-dark-950">
+      {/* Play Queue Drawer */}
+      <PlayQueue isOpen={isShowQueue} onClose={() => setShowQueue(false)} />
       {/* Toast notifications */}
       <Toaster
         position="top-center"
         toastOptions={{
           duration: 3000,
           style: {
-            background: 'var(--toast-bg)',
-            color: 'var(--toast-color)',
+            background: '#1a1c25',
+            color: '#fff',
             borderRadius: '12px',
+            border: '1px solid rgba(255,255,255,0.1)',
           },
         }}
       />
 
-      {/* Main content */}
-      <main className={currentSong && !isFullScreen ? 'pb-32' : 'pb-16'}>
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/search" element={<SearchPage />} />
-            <Route path="/explore" element={<HomePage />} />
-            <Route path="/library" element={<HomePage />} />
-            <Route path="/profile" element={<HomePage />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Suspense>
-      </main>
+      {/* Desktop Sidebar */}
+      {!isFullScreen && <Sidebar />}
 
-      {/* Bottom navigation */}
+      {/* Main content area */}
+      <div className={`${!isFullScreen ? 'lg:ml-64' : ''}`}>
+        {/* Main content */}
+        <main className={`
+          ${currentSong && !isFullScreen ? 'pb-32 lg:pb-24' : 'pb-16 lg:pb-0'}
+        `}>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/search" element={<SearchPage />} />
+              <Route path="/explore" element={<ExplorePage />} />
+              <Route path="/library" element={<LibraryPage />} />
+              <Route path="/playlist/:id" element={<PlaylistPage />} />
+              <Route path="/artist/:id" element={<ArtistPage />} />
+              <Route path="/album/:id" element={<AlbumPage />} />
+              <Route path="/toplist" element={<ToplistPage />} />
+              <Route path="/daily" element={<DailyPage />} />
+              <Route path="/fm" element={<FMPage />} />
+              <Route path="/mv/:id" element={<MVPage />} />
+              <Route path="/stats" element={<StatsPage />} />
+              <Route path="/downloads" element={<DownloadsPage />} />
+              <Route path="/smart-playlist" element={<SmartPlaylistPage />} />
+              <Route path="/recognition" element={<RecognitionPage />} />
+              <Route path="/listen-together" element={<ListenTogetherPage />} />
+              <Route path="/profile" element={<LibraryPage />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
+        </main>
+
+        {/* Mini player - fixed at bottom, offset for sidebar on desktop */}
+        {currentSong && !isFullScreen && <MiniPlayer />}
+      </div>
+
+      {/* Bottom navigation (mobile only) */}
       {!isFullScreen && <BottomNav />}
-
-      {/* Mini player */}
-      {currentSong && !isFullScreen && <MiniPlayer />}
 
       {/* Full screen player */}
       <FullPlayer />

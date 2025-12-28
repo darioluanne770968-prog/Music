@@ -31,12 +31,12 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ onExpand }) => {
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 100, opacity: 0 }}
-        className="fixed bottom-0 left-0 right-0 z-40 bg-white/80 dark:bg-dark-900/80 backdrop-blur-xl border-t border-dark-100 dark:border-dark-800 safe-bottom"
+        className="fixed bottom-16 lg:bottom-0 left-0 lg:left-64 right-0 z-40 bg-dark-900/95 backdrop-blur-xl border-t border-white/5 safe-bottom"
       >
         {/* Progress Bar */}
-        <div className="absolute top-0 left-0 right-0 h-0.5 bg-dark-200 dark:bg-dark-700">
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-white/10">
           <motion.div
-            className="h-full bg-primary-500"
+            className="h-full bg-gradient-to-r from-primary-500 to-accent-purple"
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.1 }}
@@ -57,17 +57,17 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({ onExpand }) => {
             />
 
             <div className="min-w-0">
-              <h4 className="font-medium text-dark-900 dark:text-white truncate">
+              <h4 className="font-medium text-white truncate">
                 {currentSong.name}
               </h4>
-              <p className="text-sm text-dark-500 dark:text-dark-400 truncate">
+              <p className="text-sm text-white/60 truncate">
                 {currentSong.artist.name}
               </p>
             </div>
           </div>
 
           {/* Time Display */}
-          <div className="hidden sm:flex items-center gap-1 text-xs text-dark-500 dark:text-dark-400">
+          <div className="hidden sm:flex items-center gap-1 text-xs text-white/40">
             <span>{formatDuration(currentTime)}</span>
             <span>/</span>
             <span>{formatDuration(duration)}</span>

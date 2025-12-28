@@ -1,393 +1,462 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { Cover } from '@/components/common/Avatar'
-import { SongItem } from '@/components/Song/SongItem'
 import { usePlayerStore } from '@/stores/playerStore'
 import { useUserStore } from '@/stores/userStore'
 import { getGreeting, formatNumber } from '@/utils/format'
-import type { Song, Playlist, Artist } from '@/types'
+import * as api from '@/services/netease'
 
-// Demo data
-const DEMO_BANNERS = [
-  { id: 1, image: 'https://picsum.photos/seed/banner1/800/300', title: '新歌首发' },
-  { id: 2, image: 'https://picsum.photos/seed/banner2/800/300', title: '热门推荐' },
-  { id: 3, image: 'https://picsum.photos/seed/banner3/800/300', title: '独家专辑' },
-]
+interface Banner {
+  imageUrl: string
+  targetId: number
+  targetType: number
+  titleColor: string
+  typeTitle: string
+}
 
-const DEMO_PLAYLISTS: Playlist[] = [
-  {
-    id: 1,
-    name: '今日推荐',
-    creator: { id: 1, username: '官方', level: 10, exp: 0, vipLevel: 0, followerCount: 0, followingCount: 0, playlistCount: 0, createdAt: '' },
-    cover: 'https://picsum.photos/seed/pl1/300/300',
-    description: '根据你的口味生成',
-    tags: ['推荐'],
-    isPublic: true,
-    isOfficial: true,
-    playCount: 1234567,
-    likeCount: 12345,
-    songCount: 30,
-    createdAt: '',
-    updatedAt: '',
-  },
-  {
-    id: 2,
-    name: '热门华语',
-    creator: { id: 1, username: '官方', level: 10, exp: 0, vipLevel: 0, followerCount: 0, followingCount: 0, playlistCount: 0, createdAt: '' },
-    cover: 'https://picsum.photos/seed/pl2/300/300',
-    tags: ['华语', '流行'],
-    isPublic: true,
-    isOfficial: true,
-    playCount: 2345678,
-    likeCount: 23456,
-    songCount: 50,
-    createdAt: '',
-    updatedAt: '',
-  },
-  {
-    id: 3,
-    name: '轻音乐助眠',
-    creator: { id: 1, username: '官方', level: 10, exp: 0, vipLevel: 0, followerCount: 0, followingCount: 0, playlistCount: 0, createdAt: '' },
-    cover: 'https://picsum.photos/seed/pl3/300/300',
-    tags: ['轻音乐', '助眠'],
-    isPublic: true,
-    isOfficial: false,
-    playCount: 876543,
-    likeCount: 8765,
-    songCount: 25,
-    createdAt: '',
-    updatedAt: '',
-  },
-  {
-    id: 4,
-    name: '运动能量',
-    creator: { id: 1, username: '官方', level: 10, exp: 0, vipLevel: 0, followerCount: 0, followingCount: 0, playlistCount: 0, createdAt: '' },
-    cover: 'https://picsum.photos/seed/pl4/300/300',
-    tags: ['运动', '电子'],
-    isPublic: true,
-    isOfficial: false,
-    playCount: 654321,
-    likeCount: 6543,
-    songCount: 40,
-    createdAt: '',
-    updatedAt: '',
-  },
-  {
-    id: 5,
-    name: '经典老歌',
-    creator: { id: 1, username: '官方', level: 10, exp: 0, vipLevel: 0, followerCount: 0, followingCount: 0, playlistCount: 0, createdAt: '' },
-    cover: 'https://picsum.photos/seed/pl5/300/300',
-    tags: ['经典', '怀旧'],
-    isPublic: true,
-    isOfficial: false,
-    playCount: 543210,
-    likeCount: 5432,
-    songCount: 60,
-    createdAt: '',
-    updatedAt: '',
-  },
-  {
-    id: 6,
-    name: '欧美精选',
-    creator: { id: 1, username: '官方', level: 10, exp: 0, vipLevel: 0, followerCount: 0, followingCount: 0, playlistCount: 0, createdAt: '' },
-    cover: 'https://picsum.photos/seed/pl6/300/300',
-    tags: ['欧美', '流行'],
-    isPublic: true,
-    isOfficial: true,
-    playCount: 432109,
-    likeCount: 4321,
-    songCount: 45,
-    createdAt: '',
-    updatedAt: '',
-  },
-]
+interface PlaylistItem {
+  id: number
+  name: string
+  picUrl: string
+  playCount: number
+  trackCount?: number
+}
 
-const DEMO_SONGS: Song[] = [
-  {
-    id: 1,
-    name: '晴天',
-    artist: { id: 1, name: '周杰伦', isVerified: true, followerCount: 10000000, genres: ['华语', '流行'] },
-    album: { id: 1, name: '叶惠美', artist: { id: 1, name: '周杰伦', isVerified: true, followerCount: 10000000, genres: [] }, cover: 'https://picsum.photos/seed/song1/300/300', releaseDate: '2003-07-31', type: 'album', songCount: 11 },
-    cover: 'https://picsum.photos/seed/song1/300/300',
-    duration: 269,
-    playCount: 50000000,
-    likeCount: 500000,
-    commentCount: 100000,
-    isVip: false,
-    hasLyrics: true,
-    hasMv: true,
-  },
-  {
-    id: 2,
-    name: '起风了',
-    artist: { id: 2, name: '买辣椒也用券', isVerified: true, followerCount: 5000000, genres: ['华语', '民谣'] },
-    album: { id: 2, name: '起风了', artist: { id: 2, name: '买辣椒也用券', isVerified: true, followerCount: 5000000, genres: [] }, cover: 'https://picsum.photos/seed/song2/300/300', releaseDate: '2017-02-17', type: 'single', songCount: 1 },
-    cover: 'https://picsum.photos/seed/song2/300/300',
-    duration: 325,
-    playCount: 40000000,
-    likeCount: 400000,
-    commentCount: 80000,
-    isVip: false,
-    hasLyrics: true,
-    hasMv: true,
-  },
-  {
-    id: 3,
-    name: '稻香',
-    artist: { id: 1, name: '周杰伦', isVerified: true, followerCount: 10000000, genres: ['华语', '流行'] },
-    album: { id: 3, name: '魔杰座', artist: { id: 1, name: '周杰伦', isVerified: true, followerCount: 10000000, genres: [] }, cover: 'https://picsum.photos/seed/song3/300/300', releaseDate: '2008-10-15', type: 'album', songCount: 11 },
-    cover: 'https://picsum.photos/seed/song3/300/300',
-    duration: 223,
-    playCount: 45000000,
-    likeCount: 450000,
-    commentCount: 90000,
-    isVip: false,
-    hasLyrics: true,
-    hasMv: true,
-  },
-  {
-    id: 4,
-    name: '孤勇者',
-    artist: { id: 3, name: '陈奕迅', isVerified: true, followerCount: 8000000, genres: ['华语', '流行'] },
-    album: { id: 4, name: '孤勇者', artist: { id: 3, name: '陈奕迅', isVerified: true, followerCount: 8000000, genres: [] }, cover: 'https://picsum.photos/seed/song4/300/300', releaseDate: '2021-11-08', type: 'single', songCount: 1 },
-    cover: 'https://picsum.photos/seed/song4/300/300',
-    duration: 262,
-    playCount: 60000000,
-    likeCount: 600000,
-    commentCount: 120000,
-    isVip: false,
-    hasLyrics: true,
-    hasMv: true,
-  },
-  {
-    id: 5,
-    name: '漠河舞厅',
-    artist: { id: 4, name: '柳爽', isVerified: true, followerCount: 2000000, genres: ['华语', '民谣'] },
-    album: { id: 5, name: '漠河舞厅', artist: { id: 4, name: '柳爽', isVerified: true, followerCount: 2000000, genres: [] }, cover: 'https://picsum.photos/seed/song5/300/300', releaseDate: '2020-08-05', type: 'single', songCount: 1 },
-    cover: 'https://picsum.photos/seed/song5/300/300',
-    duration: 292,
-    playCount: 30000000,
-    likeCount: 300000,
-    commentCount: 60000,
-    isVip: false,
-    hasLyrics: true,
-    hasMv: true,
-  },
-]
+interface SongItem {
+  id: number
+  name: string
+  picUrl?: string
+  song?: {
+    artists: Array<{ id: number; name: string }>
+    album: { id: number; name: string; picUrl: string }
+    duration: number
+    mvid?: number
+    fee?: number
+  }
+}
+
+interface AlbumItem {
+  id: number
+  name: string
+  picUrl: string
+  artist: { id: number; name: string }
+}
 
 const CATEGORIES = ['推荐', '华语', '欧美', '日韩', '电子', '说唱', '民谣', '摇滚', '古典']
 
 export const HomePage: React.FC = () => {
   const { user } = useUserStore()
   const { setQueue } = usePlayerStore()
-  const [activeCategory, setActiveCategory] = React.useState('推荐')
-  const [currentBanner, setCurrentBanner] = React.useState(0)
+  const [activeCategory, setActiveCategory] = useState('推荐')
+  const [currentBanner, setCurrentBanner] = useState(0)
 
-  // Auto rotate banners
-  React.useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentBanner((prev) => (prev + 1) % DEMO_BANNERS.length)
-    }, 5000)
-    return () => clearInterval(timer)
+  const [banners, setBanners] = useState<Banner[]>([])
+  const [playlists, setPlaylists] = useState<PlaylistItem[]>([])
+  const [newSongs, setNewSongs] = useState<SongItem[]>([])
+  const [newAlbums, setNewAlbums] = useState<AlbumItem[]>([])
+  const [loading, setLoading] = useState(true)
+
+  // Fetch data
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true)
+
+        // 先尝试获取个性化推荐，失败则获取热门歌单
+        const [bannerRes, albumRes] = await Promise.all([
+          api.getBanner(0).catch(() => null),
+          api.getNewestAlbums().catch(() => null)
+        ])
+
+        if (bannerRes?.banners) {
+          setBanners(bannerRes.banners.slice(0, 5))
+        }
+
+        if (albumRes?.albums) {
+          setNewAlbums(albumRes.albums.slice(0, 10))
+        }
+
+        // 尝试获取个性化推荐歌单
+        try {
+          const playlistRes = await api.getPersonalized(12)
+          if (playlistRes?.result) {
+            setPlaylists(playlistRes.result)
+          }
+        } catch {
+          // 降级为热门歌单（不需要登录）
+          try {
+            const hotRes = await api.getHotPlaylists(12)
+            if (hotRes?.playlists) {
+              setPlaylists(hotRes.playlists.map((p: any) => ({
+                id: p.id,
+                name: p.name,
+                picUrl: p.coverImgUrl,
+                playCount: p.playCount
+              })))
+            }
+          } catch (e) {
+            console.log('Failed to get playlists:', e)
+          }
+        }
+
+        // 尝试获取新歌
+        try {
+          const newSongRes = await api.getPersonalizedNewSongs(10)
+          if (newSongRes?.result) {
+            setNewSongs(newSongRes.result)
+          }
+        } catch {
+          // 降级为新歌榜
+          try {
+            const topRes = await api.getToplistDetail()
+            if (topRes?.playlist?.tracks) {
+              setNewSongs(topRes.playlist.tracks.slice(0, 10).map((t: any) => ({
+                id: t.id,
+                name: t.name,
+                picUrl: t.al?.picUrl,
+                song: {
+                  artists: t.ar,
+                  album: t.al,
+                  duration: t.dt,
+                  mvid: t.mv,
+                  fee: t.fee
+                }
+              })))
+            }
+          } catch (e) {
+            console.log('Failed to get new songs:', e)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch home data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
   }, [])
 
+  // Auto rotate banners
+  useEffect(() => {
+    if (banners.length === 0) return
+    const timer = setInterval(() => {
+      setCurrentBanner((prev) => (prev + 1) % banners.length)
+    }, 5000)
+    return () => clearInterval(timer)
+  }, [banners.length])
+
+  // Play new songs
+  const playNewSongs = (startIndex = 0) => {
+    const songs = newSongs.map(item => ({
+      id: item.id,
+      name: item.name,
+      title: item.name,
+      artist: item.song?.artists?.[0]?.name || '未知歌手',
+      artists: item.song?.artists || [],
+      album: item.song?.album?.name || '未知专辑',
+      albumId: item.song?.album?.id,
+      cover: item.picUrl || item.song?.album?.picUrl || '',
+      duration: Math.floor((item.song?.duration || 0) / 1000),
+      isVip: item.song?.fee === 1,
+      mvId: item.song?.mvid || 0,
+    }))
+    setQueue(songs, startIndex)
+  }
+
   return (
-    <div className="min-h-screen pb-24">
-      {/* Header */}
-      <div className="sticky top-0 z-30 bg-white/80 dark:bg-dark-950/80 backdrop-blur-xl border-b border-dark-100 dark:border-dark-800">
-        <div className="flex items-center justify-between px-4 py-3">
-          <div>
-            <h1 className="text-xl font-bold text-dark-900 dark:text-white">
-              {getGreeting()}{user ? `，${user.username}` : ''}
-            </h1>
-            <p className="text-sm text-dark-500 dark:text-dark-400">发现更多好音乐</p>
+    <div className="min-h-screen bg-dark-950 pb-24">
+      {/* Header with gradient background */}
+      <div className="relative">
+        <div className="absolute inset-0 h-64 bg-gradient-to-b from-primary-500/20 via-accent-purple/10 to-transparent pointer-events-none" />
+
+        <div className="relative sticky top-0 z-30 bg-dark-950/80 backdrop-blur-xl">
+          <div className="flex items-center justify-between px-4 py-4 lg:px-6">
+            <div>
+              <h1 className="text-xl lg:text-2xl font-bold text-white">
+                {getGreeting()}{user ? `，${user.username}` : ''}
+              </h1>
+              <p className="text-sm text-white/60">发现更多好音乐</p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Link to="/search" className="p-2 rounded-full hover:bg-white/10 transition-colors">
+                <svg className="w-6 h-6 text-white/80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </Link>
+              <button className="p-2 rounded-full hover:bg-white/10 transition-colors">
+                <svg className="w-6 h-6 text-white/80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+              </button>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button className="p-2 rounded-full hover:bg-dark-100 dark:hover:bg-dark-800">
-              <svg className="w-6 h-6 text-dark-600 dark:text-dark-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </button>
-            <button className="p-2 rounded-full hover:bg-dark-100 dark:hover:bg-dark-800">
-              <svg className="w-6 h-6 text-dark-600 dark:text-dark-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-              </svg>
-            </button>
+          {/* Categories */}
+          <div className="flex gap-2 px-4 lg:px-6 pb-3 overflow-x-auto scrollbar-hide">
+            {CATEGORIES.map((category) => (
+              <button
+                key={category}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+                  activeCategory === category
+                    ? 'bg-primary-500 text-white shadow-glow'
+                    : 'bg-white/10 text-white/60 hover:bg-white/20 hover:text-white'
+                }`}
+                onClick={() => setActiveCategory(category)}
+              >
+                {category}
+              </button>
+            ))}
           </div>
-        </div>
-
-        {/* Categories */}
-        <div className="flex gap-2 px-4 pb-3 overflow-x-auto scrollbar-hide">
-          {CATEGORIES.map((category) => (
-            <button
-              key={category}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                activeCategory === category
-                  ? 'bg-primary-500 text-white'
-                  : 'bg-dark-100 dark:bg-dark-800 text-dark-600 dark:text-dark-400 hover:bg-dark-200 dark:hover:bg-dark-700'
-              }`}
-              onClick={() => setActiveCategory(category)}
-            >
-              {category}
-            </button>
-          ))}
         </div>
       </div>
 
-      <div className="px-4 py-4 space-y-6">
-        {/* Banner */}
-        <div className="relative rounded-2xl overflow-hidden aspect-[2.5/1]">
-          {DEMO_BANNERS.map((banner, index) => (
-            <motion.div
-              key={banner.id}
-              className="absolute inset-0"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: index === currentBanner ? 1 : 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <img
-                src={banner.image}
-                alt={banner.title}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-              <h3 className="absolute bottom-4 left-4 text-xl font-bold text-white">
-                {banner.title}
-              </h3>
-            </motion.div>
-          ))}
-
-          {/* Indicators */}
-          <div className="absolute bottom-4 right-4 flex gap-1.5">
-            {DEMO_BANNERS.map((_, index) => (
-              <button
-                key={index}
-                className={`w-2 h-2 rounded-full transition-colors ${
-                  index === currentBanner ? 'bg-white' : 'bg-white/50'
-                }`}
-                onClick={() => setCurrentBanner(index)}
-              />
-            ))}
+      <div className="px-4 lg:px-6 py-4 space-y-8">
+        {/* Loading skeleton */}
+        {loading ? (
+          <div className="space-y-8">
+            <div className="rounded-2xl bg-white/5 animate-pulse aspect-[2.5/1]" />
+            <div className="grid grid-cols-4 gap-3">
+              {[1,2,3,4].map(i => <div key={i} className="aspect-square rounded-xl bg-white/5 animate-pulse" />)}
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              {[1,2,3,4,5,6].map(i => <div key={i} className="aspect-square rounded-xl bg-white/5 animate-pulse" />)}
+            </div>
           </div>
-        </div>
+        ) : (
+          <>
+            {/* Banner */}
+            {banners.length > 0 && (
+              <div className="relative rounded-2xl overflow-hidden aspect-[2.5/1] lg:aspect-[3/1]">
+                {banners.map((banner, index) => (
+                  <motion.div
+                    key={index}
+                    className="absolute inset-0"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: index === currentBanner ? 1 : 0 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <img
+                      src={banner.imageUrl}
+                      alt={banner.typeTitle}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                    <span className="absolute bottom-4 left-4 px-2 py-1 rounded bg-primary-500/80 text-xs text-white">
+                      {banner.typeTitle}
+                    </span>
+                  </motion.div>
+                ))}
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-4 gap-3">
-          {[
-            { icon: '📅', label: '每日推荐', color: 'from-orange-500 to-red-500' },
-            { icon: '📻', label: '私人FM', color: 'from-purple-500 to-pink-500' },
-            { icon: '🎵', label: '歌单', color: 'from-blue-500 to-cyan-500' },
-            { icon: '📊', label: '排行榜', color: 'from-green-500 to-emerald-500' },
-          ].map((action) => (
-            <Link
-              key={action.label}
-              to={`/${action.label}`}
-              className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-dark-50 dark:bg-dark-800 hover:scale-105 transition-transform"
-            >
-              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${action.color} flex items-center justify-center text-xl`}>
-                {action.icon}
+                <div className="absolute bottom-4 right-4 flex gap-1.5">
+                  {banners.map((_, index) => (
+                    <button
+                      key={index}
+                      className={`w-2 h-2 rounded-full transition-all ${
+                        index === currentBanner ? 'bg-primary-500 w-4' : 'bg-white/50'
+                      }`}
+                      onClick={() => setCurrentBanner(index)}
+                    />
+                  ))}
+                </div>
               </div>
-              <span className="text-xs text-dark-600 dark:text-dark-400">{action.label}</span>
-            </Link>
-          ))}
-        </div>
+            )}
 
-        {/* Recommended Playlists */}
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-bold text-dark-900 dark:text-white">推荐歌单</h2>
-            <Link to="/playlists" className="text-sm text-primary-500">更多</Link>
-          </div>
+            {/* Quick Actions */}
+            <div className="grid grid-cols-4 lg:grid-cols-8 gap-3 lg:gap-4">
+              {[
+                { icon: '📅', label: '每日推荐', path: '/daily', color: 'from-orange-500 to-red-500' },
+                { icon: '📻', label: '私人FM', path: '/fm', color: 'from-purple-500 to-pink-500' },
+                { icon: '🎵', label: '歌单', path: '/explore', color: 'from-blue-500 to-cyan-500' },
+                { icon: '📊', label: '排行榜', path: '/toplist', color: 'from-green-500 to-emerald-500' },
+              ].map((action) => (
+                <Link
+                  key={action.label}
+                  to={action.path}
+                  className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-white/5 hover:bg-white/10 transition-all hover:scale-105"
+                >
+                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${action.color} flex items-center justify-center text-2xl shadow-lg`}>
+                    {action.icon}
+                  </div>
+                  <span className="text-xs text-white/70">{action.label}</span>
+                </Link>
+              ))}
+            </div>
 
-          <div className="grid grid-cols-3 gap-3">
-            {DEMO_PLAYLISTS.slice(0, 6).map((playlist) => (
-              <Link
-                key={playlist.id}
-                to={`/playlist/${playlist.id}`}
-                className="group"
-              >
-                <div className="relative aspect-square rounded-xl overflow-hidden mb-2">
-                  <img
-                    src={playlist.cover}
-                    alt={playlist.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                  />
-                  <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-black/50 text-xs text-white flex items-center gap-0.5">
-                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
+            {/* Recommended Playlists */}
+            {playlists.length > 0 && (
+              <section>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg lg:text-xl font-bold text-white">推荐歌单</h2>
+                  <Link to="/explore" className="text-sm text-primary-400 hover:text-primary-300 transition-colors">
+                    更多
+                    <svg className="w-4 h-4 inline-block ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </Link>
+                </div>
+
+                <div className="grid grid-cols-3 lg:grid-cols-6 gap-3 lg:gap-4">
+                  {playlists.slice(0, 6).map((playlist) => (
+                    <Link
+                      key={playlist.id}
+                      to={`/playlist/${playlist.id}`}
+                      className="group"
+                    >
+                      <div className="relative aspect-square rounded-xl overflow-hidden mb-2 ring-1 ring-white/10">
+                        <img
+                          src={playlist.picUrl}
+                          alt={playlist.name}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded-md bg-black/60 backdrop-blur-sm text-xs text-white flex items-center gap-0.5">
+                          <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M8 5.14v13.72c0 .94 1.02 1.53 1.83 1.06l11.03-6.86c.78-.49.78-1.63 0-2.12L9.83 4.08C9.02 3.61 8 4.2 8 5.14z" />
+                          </svg>
+                          {formatNumber(playlist.playCount)}
+                        </div>
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="w-12 h-12 rounded-full bg-primary-500 flex items-center justify-center shadow-glow transform scale-90 group-hover:scale-100 transition-transform">
+                            <svg className="w-5 h-5 text-white ml-0.5" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M8 5.14v13.72c0 .94 1.02 1.53 1.83 1.06l11.03-6.86c.78-.49.78-1.63 0-2.12L9.83 4.08C9.02 3.61 8 4.2 8 5.14z" />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-sm text-white line-clamp-2 group-hover:text-primary-400 transition-colors">
+                        {playlist.name}
+                      </p>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* New Songs */}
+            {newSongs.length > 0 && (
+              <section>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg lg:text-xl font-bold text-white">新歌速递</h2>
+                  <button
+                    className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-primary-500/20 text-primary-400 hover:bg-primary-500/30 transition-colors text-sm"
+                    onClick={() => playNewSongs(0)}
+                  >
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M8 5.14v13.72c0 .94 1.02 1.53 1.83 1.06l11.03-6.86c.78-.49.78-1.63 0-2.12L9.83 4.08C9.02 3.61 8 4.2 8 5.14z" />
                     </svg>
-                    {formatNumber(playlist.playCount)}
-                  </div>
+                    播放全部
+                  </button>
                 </div>
-                <p className="text-sm text-dark-900 dark:text-white line-clamp-2">
-                  {playlist.name}
-                </p>
-              </Link>
-            ))}
-          </div>
-        </section>
 
-        {/* Hot Songs */}
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-bold text-dark-900 dark:text-white">热门歌曲</h2>
-            <button
-              className="flex items-center gap-1 text-sm text-primary-500"
-              onClick={() => setQueue(DEMO_SONGS, 0)}
-            >
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M8 5.14v13.72c0 .94 1.02 1.53 1.83 1.06l11.03-6.86c.78-.49.78-1.63 0-2.12L9.83 4.08C9.02 3.61 8 4.2 8 5.14z" />
-              </svg>
-              播放全部
-            </button>
-          </div>
-
-          <div className="bg-dark-50 dark:bg-dark-900 rounded-2xl p-2">
-            {DEMO_SONGS.map((song, index) => (
-              <SongItem
-                key={song.id}
-                song={song}
-                index={index}
-                showIndex
-                onClick={() => setQueue(DEMO_SONGS, index)}
-              />
-            ))}
-          </div>
-        </section>
-
-        {/* New Albums */}
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-bold text-dark-900 dark:text-white">新碟上架</h2>
-            <Link to="/albums" className="text-sm text-primary-500">更多</Link>
-          </div>
-
-          <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2">
-            {DEMO_SONGS.map((song) => (
-              <Link
-                key={song.id}
-                to={`/album/${song.album?.id}`}
-                className="shrink-0 w-32"
-              >
-                <div className="aspect-square rounded-xl overflow-hidden mb-2">
-                  <img
-                    src={song.album?.cover}
-                    alt={song.album?.name}
-                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
-                  />
+                <div className="bg-dark-900/50 rounded-2xl p-3 ring-1 ring-white/5">
+                  {newSongs.slice(0, 6).map((song, index) => (
+                    <div
+                      key={song.id}
+                      className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 cursor-pointer transition-colors"
+                      onClick={() => playNewSongs(index)}
+                    >
+                      <span className="w-6 text-center text-sm text-white/40">{index + 1}</span>
+                      <img
+                        src={song.picUrl || song.song?.album?.picUrl}
+                        alt={song.name}
+                        className="w-12 h-12 rounded-lg object-cover"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-white truncate">{song.name}</p>
+                        <p className="text-xs text-white/50 truncate">
+                          {song.song?.artists?.map(a => a.name).join(' / ')}
+                        </p>
+                      </div>
+                      {song.song?.fee === 1 && (
+                        <span className="px-1.5 py-0.5 rounded text-xs bg-amber-500/20 text-amber-400">VIP</span>
+                      )}
+                      {song.song?.mvid && song.song.mvid > 0 && (
+                        <span className="px-1.5 py-0.5 rounded text-xs bg-primary-500/20 text-primary-400">MV</span>
+                      )}
+                    </div>
+                  ))}
                 </div>
-                <p className="text-sm font-medium text-dark-900 dark:text-white truncate">
-                  {song.album?.name}
-                </p>
-                <p className="text-xs text-dark-500 dark:text-dark-400 truncate">
-                  {song.artist.name}
-                </p>
-              </Link>
-            ))}
-          </div>
-        </section>
+              </section>
+            )}
+
+            {/* New Albums */}
+            {newAlbums.length > 0 && (
+              <section>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg lg:text-xl font-bold text-white">新碟上架</h2>
+                  <Link to="/albums" className="text-sm text-primary-400 hover:text-primary-300 transition-colors">
+                    更多
+                    <svg className="w-4 h-4 inline-block ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </Link>
+                </div>
+
+                <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2">
+                  {newAlbums.map((album) => (
+                    <Link
+                      key={album.id}
+                      to={`/album/${album.id}`}
+                      className="shrink-0 w-36 lg:w-44 group"
+                    >
+                      <div className="aspect-square rounded-xl overflow-hidden mb-2 ring-1 ring-white/10 group-hover:ring-primary-500/50 transition-all">
+                        <img
+                          src={album.picUrl}
+                          alt={album.name}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        />
+                      </div>
+                      <p className="text-sm font-medium text-white truncate group-hover:text-primary-400 transition-colors">
+                        {album.name}
+                      </p>
+                      <p className="text-xs text-white/50 truncate">
+                        {album.artist?.name}
+                      </p>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* More Playlists */}
+            {playlists.length > 6 && (
+              <section>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg lg:text-xl font-bold text-white">更多推荐</h2>
+                </div>
+
+                <div className="grid grid-cols-3 lg:grid-cols-6 gap-3 lg:gap-4">
+                  {playlists.slice(6, 12).map((playlist) => (
+                    <Link
+                      key={playlist.id}
+                      to={`/playlist/${playlist.id}`}
+                      className="group"
+                    >
+                      <div className="relative aspect-square rounded-xl overflow-hidden mb-2 ring-1 ring-white/10">
+                        <img
+                          src={playlist.picUrl}
+                          alt={playlist.name}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        />
+                        <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded-md bg-black/60 backdrop-blur-sm text-xs text-white flex items-center gap-0.5">
+                          <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M8 5.14v13.72c0 .94 1.02 1.53 1.83 1.06l11.03-6.86c.78-.49.78-1.63 0-2.12L9.83 4.08C9.02 3.61 8 4.2 8 5.14z" />
+                          </svg>
+                          {formatNumber(playlist.playCount)}
+                        </div>
+                      </div>
+                      <p className="text-sm text-white line-clamp-2 group-hover:text-primary-400 transition-colors">
+                        {playlist.name}
+                      </p>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
+          </>
+        )}
       </div>
     </div>
   )

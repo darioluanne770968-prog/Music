@@ -10,14 +10,20 @@ interface PlayerStore extends PlayState, PlayQueue {
   isShowLyrics: boolean
   isLoading: boolean
   error: string | null
+  seekTime: number | null
+
+  // Computed
+  queue: Song[]
 
   // Actions
   setCurrentSong: (song: Song) => void
+  setCurrentIndex: (index: number) => void
   play: () => void
   pause: () => void
   togglePlay: () => void
   setIsPlaying: (isPlaying: boolean) => void
   setCurrentTime: (time: number) => void
+  seekTo: (time: number) => void
   setDuration: (duration: number) => void
   setBuffered: (buffered: number) => void
   setVolume: (volume: number) => void
@@ -123,6 +129,12 @@ export const usePlayerStore = create<PlayerStore>()(
       isShowLyrics: false,
       isLoading: false,
       error: null,
+      seekTime: null,
+
+      // Computed - queue is alias for songs
+      get queue() {
+        return get().songs
+      },
 
       // Basic Actions
       setCurrentSong: (song) => {
@@ -147,6 +159,7 @@ export const usePlayerStore = create<PlayerStore>()(
       togglePlay: () => set((state) => ({ isPlaying: !state.isPlaying })),
       setIsPlaying: (isPlaying) => set({ isPlaying }),
       setCurrentTime: (currentTime) => set({ currentTime }),
+      seekTo: (time) => set({ seekTime: time, currentTime: time }),
       setDuration: (duration) => set({ duration }),
       setBuffered: (buffered) => set({ buffered }),
 
@@ -155,6 +168,23 @@ export const usePlayerStore = create<PlayerStore>()(
 
       setPlayMode: (playMode) => set({ playMode }),
       setPlaybackRate: (playbackRate) => set({ playbackRate }),
+
+      // setCurrentIndex is alias for jumpTo
+      setCurrentIndex: (index) => {
+        const { songs, currentIndex, history } = get()
+        if (index < 0 || index >= songs.length) return
+
+        const newHistory = currentIndex >= 0 ? [...history, currentIndex] : history
+
+        set({
+          currentIndex: index,
+          currentSong: songs[index],
+          history: newHistory.slice(-50),
+          currentTime: 0,
+          isPlaying: true,
+          error: null,
+        })
+      },
 
       // Queue Actions
       setQueue: (songs, startIndex = 0) => {

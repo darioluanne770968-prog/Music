@@ -168,13 +168,13 @@ export const SongItem: React.FC<SongItemProps> = ({
   // Default variant
   return (
     <motion.div
-      whileHover={{ backgroundColor: 'var(--hover-bg)' }}
+      whileHover={{ backgroundColor: 'rgba(255,255,255,0.05)' }}
       className={clsx(
-        'flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer group',
+        'flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer group transition-colors',
         isActive && 'bg-primary-500/10',
+        isCurrentSong && 'bg-primary-500/5',
         className
       )}
-      style={{ '--hover-bg': 'rgba(0,0,0,0.05)' } as React.CSSProperties}
       onClick={handleClick}
     >
       {/* Index or Play indicator */}
@@ -193,7 +193,7 @@ export const SongItem: React.FC<SongItemProps> = ({
           ) : (
             <span className={clsx(
               'text-sm',
-              isCurrentSong ? 'text-primary-500 font-medium' : 'text-dark-500 dark:text-dark-400'
+              isCurrentSong ? 'text-primary-500 font-medium' : 'text-white/40'
             )}>
               {(index ?? 0) + 1}
             </span>
@@ -218,7 +218,7 @@ export const SongItem: React.FC<SongItemProps> = ({
       <div className="flex-1 min-w-0">
         <h4 className={clsx(
           'font-medium truncate',
-          isCurrentSong ? 'text-primary-500' : 'text-dark-900 dark:text-white'
+          isCurrentSong ? 'text-primary-500' : 'text-white'
         )}>
           {song.name}
           {song.isVip && (
@@ -228,7 +228,7 @@ export const SongItem: React.FC<SongItemProps> = ({
           )}
         </h4>
         {(showArtist || showAlbum) && (
-          <p className="text-sm text-dark-500 dark:text-dark-400 truncate">
+          <p className="text-sm text-white/50 truncate">
             {showArtist && song.artist.name}
             {showArtist && showAlbum && song.album && ' - '}
             {showAlbum && song.album?.name}
@@ -238,7 +238,7 @@ export const SongItem: React.FC<SongItemProps> = ({
 
       {/* Duration */}
       {showDuration && (
-        <span className="text-sm text-dark-500 dark:text-dark-400 tabular-nums">
+        <span className="text-sm text-white/40 tabular-nums">
           {formatDuration(song.duration)}
         </span>
       )}
@@ -255,7 +255,7 @@ export const SongItem: React.FC<SongItemProps> = ({
             }}
           >
             <svg
-              className={clsx('w-5 h-5', song.isLiked ? 'text-primary-500' : 'text-dark-400')}
+              className={clsx('w-5 h-5', song.isLiked ? 'text-primary-500' : 'text-white/40')}
               viewBox="0 0 24 24"
               fill={song.isLiked ? 'currentColor' : 'none'}
               stroke="currentColor"
@@ -273,7 +273,7 @@ export const SongItem: React.FC<SongItemProps> = ({
               onMore?.()
             }}
           >
-            <svg className="w-5 h-5 text-dark-400" viewBox="0 0 24 24" fill="currentColor">
+            <svg className="w-5 h-5 text-white/40" viewBox="0 0 24 24" fill="currentColor">
               <circle cx="12" cy="6" r="2" />
               <circle cx="12" cy="12" r="2" />
               <circle cx="12" cy="18" r="2" />

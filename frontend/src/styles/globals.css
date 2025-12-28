@@ -4,88 +4,124 @@
 
 @layer base {
   :root {
-    --primary: 255, 51, 102;
-    --background: 255, 255, 255;
-    --foreground: 26, 27, 30;
-    --card: 255, 255, 255;
-    --card-foreground: 26, 27, 30;
-    --border: 226, 227, 229;
-    --muted: 246, 246, 247;
-    --muted-foreground: 124, 127, 135;
-  }
-
-  .dark {
-    --primary: 255, 51, 102;
-    --background: 13, 14, 16;
+    --primary: 255, 51, 129;
+    --background: 15, 16, 21;
     --foreground: 246, 246, 247;
-    --card: 26, 27, 30;
+    --card: 26, 28, 37;
     --card-foreground: 246, 246, 247;
-    --border: 54, 56, 60;
-    --muted: 36, 38, 42;
-    --muted-foreground: 160, 162, 169;
+    --border: 42, 45, 58;
+    --muted: 42, 45, 58;
+    --muted-foreground: 158, 162, 181;
+    color-scheme: dark;
   }
 
   * {
-    @apply border-dark-200 dark:border-dark-700;
+    @apply border-dark-700;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    color-scheme: dark;
   }
 
   body {
-    @apply bg-white dark:bg-dark-950 text-dark-900 dark:text-dark-50;
+    @apply bg-dark-950 text-white;
     font-feature-settings: "rlig" 1, "calt" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  html {
-    scroll-behavior: smooth;
+  /* Custom scrollbar - 汽水音乐风格 */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-white/10 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-white/20;
   }
 }
 
 @layer components {
+  /* Glass effects */
   .glass {
-    @apply bg-white/80 dark:bg-dark-900/80 backdrop-blur-xl;
+    @apply bg-dark-900/80 backdrop-blur-xl border border-white/5;
   }
 
   .glass-card {
-    @apply bg-white/60 dark:bg-dark-800/60 backdrop-blur-lg rounded-2xl;
+    @apply bg-dark-800/60 backdrop-blur-lg rounded-2xl border border-white/5;
   }
 
+  .glass-button {
+    @apply bg-white/10 backdrop-blur-sm hover:bg-white/20 transition-colors;
+  }
+
+  /* Buttons */
   .btn {
-    @apply inline-flex items-center justify-center rounded-full font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center rounded-full font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-primary {
-    @apply btn bg-primary-500 text-white hover:bg-primary-600 active:scale-95;
+    @apply btn bg-primary-500 text-white hover:bg-primary-600 active:scale-95 shadow-glow;
   }
 
   .btn-secondary {
-    @apply btn bg-dark-100 dark:bg-dark-800 text-dark-900 dark:text-white hover:bg-dark-200 dark:hover:bg-dark-700 active:scale-95;
+    @apply btn bg-white/10 text-white hover:bg-white/20 active:scale-95;
   }
 
   .btn-ghost {
-    @apply btn text-dark-600 dark:text-dark-400 hover:bg-dark-100 dark:hover:bg-dark-800;
+    @apply btn text-white/60 hover:text-white hover:bg-white/10;
   }
 
+  /* Input */
   .input {
-    @apply w-full rounded-xl border border-dark-200 dark:border-dark-700 bg-white dark:bg-dark-800 px-4 py-3 text-dark-900 dark:text-white placeholder:text-dark-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200;
+    @apply w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-white/40 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200;
   }
 
+  /* Cards */
   .card {
-    @apply bg-white dark:bg-dark-900 rounded-2xl shadow-sm border border-dark-100 dark:border-dark-800;
+    @apply bg-dark-800/50 rounded-2xl border border-white/5;
   }
 
   .card-hover {
-    @apply card hover:shadow-lg hover:scale-[1.02] transition-all duration-300 cursor-pointer;
+    @apply card hover:bg-dark-800/80 hover:border-white/10 transition-all duration-300 cursor-pointer;
   }
 
+  /* Gradients */
   .gradient-primary {
-    @apply bg-gradient-to-r from-primary-500 to-primary-600;
+    background: linear-gradient(to right, #ff3381, #8b5cf6);
   }
 
   .gradient-text {
-    @apply bg-gradient-to-r from-primary-500 to-primary-400 bg-clip-text text-transparent;
+    background: linear-gradient(to right, #ff6ba3, #8b5cf6);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
 
+  .gradient-border {
+    @apply relative;
+  }
+
+  .gradient-border::before {
+    content: '';
+    @apply absolute inset-0 rounded-2xl p-[1px];
+    background: linear-gradient(135deg, rgba(255,51,129,0.5), rgba(139,92,246,0.5));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+
+  /* Scrollbar utilities */
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -97,12 +133,12 @@
 
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: rgb(var(--muted-foreground)) transparent;
+    scrollbar-color: rgba(255,255,255,0.1) transparent;
   }
 
   .scrollbar-thin::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 4px;
+    height: 4px;
   }
 
   .scrollbar-thin::-webkit-scrollbar-track {
@@ -110,10 +146,10 @@
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: rgb(var(--muted-foreground));
-    border-radius: 3px;
+    @apply bg-white/10 rounded-full;
   }
 
+  /* Line clamp */
   .line-clamp-1 {
     display: -webkit-box;
     -webkit-line-clamp: 1;
@@ -128,61 +164,68 @@
     overflow: hidden;
   }
 
-  .text-gradient {
-    @apply bg-gradient-to-r from-primary-400 via-primary-500 to-primary-600 bg-clip-text text-transparent;
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Nav item */
+  .nav-item {
+    @apply flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-colors;
+  }
+
+  .nav-item.active {
+    @apply bg-white/10 text-white;
+  }
+
+  /* Tag/Badge */
+  .tag {
+    @apply px-2 py-0.5 rounded text-xs font-medium;
+  }
+
+  .tag-vip {
+    @apply tag bg-gradient-to-r from-amber-500 to-amber-400 text-white;
+  }
+
+  .tag-mv {
+    @apply tag border border-white/20 text-white/60;
   }
 }
 
 @layer utilities {
-  .animate-delay-100 {
-    animation-delay: 100ms;
+  /* Animation delays */
+  .animate-delay-100 { animation-delay: 100ms; }
+  .animate-delay-200 { animation-delay: 200ms; }
+  .animate-delay-300 { animation-delay: 300ms; }
+  .animate-delay-400 { animation-delay: 400ms; }
+  .animate-delay-500 { animation-delay: 500ms; }
+
+  /* Safe area */
+  .safe-top { padding-top: env(safe-area-inset-top); }
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+  .safe-left { padding-left: env(safe-area-inset-left); }
+  .safe-right { padding-right: env(safe-area-inset-right); }
+
+  /* Text shadow for readability on images */
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
   }
 
-  .animate-delay-200 {
-    animation-delay: 200ms;
-  }
-
-  .animate-delay-300 {
-    animation-delay: 300ms;
-  }
-
-  .animate-delay-400 {
-    animation-delay: 400ms;
-  }
-
-  .animate-delay-500 {
-    animation-delay: 500ms;
-  }
-
-  .safe-top {
-    padding-top: env(safe-area-inset-top);
-  }
-
-  .safe-bottom {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-
-  .safe-left {
-    padding-left: env(safe-area-inset-left);
-  }
-
-  .safe-right {
-    padding-right: env(safe-area-inset-right);
+  .text-shadow-lg {
+    text-shadow: 0 4px 8px rgba(0,0,0,0.8);
   }
 }
 
 /* Vinyl Record Animation */
 @keyframes vinyl-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .vinyl-spinning {
-  animation: vinyl-spin 3s linear infinite;
+  animation: vinyl-spin 20s linear infinite;
 }
 
 .vinyl-paused {
@@ -191,12 +234,8 @@
 
 /* Lyrics Highlight Animation */
 @keyframes lyrics-highlight {
-  0% {
-    background-size: 0% 100%;
-  }
-  100% {
-    background-size: 100% 100%;
-  }
+  0% { background-size: 0% 100%; }
+  100% { background-size: 100% 100%; }
 }
 
 .lyrics-highlight {
@@ -212,19 +251,40 @@
   background-position: 0 0;
 }
 
-/* Music Visualizer */
+/* Music Visualizer / Equalizer */
 .visualizer-bar {
   @apply bg-gradient-to-t from-primary-500 to-primary-300 rounded-full;
-  animation: visualizer 0.5s ease-in-out infinite alternate;
 }
 
-@keyframes visualizer {
-  0% {
-    transform: scaleY(0.3);
-  }
-  100% {
-    transform: scaleY(1);
-  }
+@keyframes equalizer-1 {
+  0%, 100% { height: 30%; }
+  50% { height: 100%; }
+}
+
+@keyframes equalizer-2 {
+  0%, 100% { height: 50%; }
+  50% { height: 80%; }
+}
+
+@keyframes equalizer-3 {
+  0%, 100% { height: 40%; }
+  50% { height: 90%; }
+}
+
+.equalizer-bar-1 { animation: equalizer-1 0.8s ease-in-out infinite; }
+.equalizer-bar-2 { animation: equalizer-2 0.6s ease-in-out infinite; }
+.equalizer-bar-3 { animation: equalizer-3 0.7s ease-in-out infinite; }
+
+/* Mini equalizer animation for playing indicator */
+@keyframes equalizer {
+  0%, 100% { height: 4px; }
+  25% { height: 12px; }
+  50% { height: 16px; }
+  75% { height: 8px; }
+}
+
+.animate-equalizer {
+  animation: equalizer 0.8s ease-in-out infinite;
 }
 
 /* Progress Bar Thumb */
@@ -233,11 +293,12 @@ input[type="range"] {
 }
 
 input[type="range"]::-webkit-slider-runnable-track {
-  @apply h-1 rounded-full bg-dark-200 dark:bg-dark-700;
+  @apply h-1 rounded-full bg-white/10;
 }
 
 input[type="range"]::-webkit-slider-thumb {
-  @apply appearance-none w-3 h-3 rounded-full bg-primary-500 -mt-1 shadow-lg;
+  @apply appearance-none w-3 h-3 rounded-full bg-primary-500 -mt-1;
+  box-shadow: 0 0 20px rgba(255, 51, 129, 0.3);
   transition: transform 0.15s ease;
 }
 
@@ -246,7 +307,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
 }
 
 input[type="range"]::-moz-range-track {
-  @apply h-1 rounded-full bg-dark-200 dark:bg-dark-700;
+  @apply h-1 rounded-full bg-white/10;
 }
 
 input[type="range"]::-moz-range-thumb {
@@ -255,28 +316,154 @@ input[type="range"]::-moz-range-thumb {
 
 /* Skeleton Loading */
 .skeleton {
-  @apply bg-dark-200 dark:bg-dark-800 animate-pulse rounded;
+  @apply bg-white/5 animate-pulse rounded;
 }
 
-/* Toast Styles */
-.toast-enter {
-  opacity: 0;
-  transform: translateY(-20px) scale(0.9);
+/* Hover effect for playlist cards */
+.playlist-card {
+  @apply relative overflow-hidden rounded-2xl;
 }
 
-.toast-enter-active {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-  transition: all 0.3s ease-out;
+.playlist-card::after {
+  content: '';
+  @apply absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60;
+  transition: opacity 0.3s ease;
 }
 
-.toast-exit {
-  opacity: 1;
-  transform: translateY(0) scale(1);
+.playlist-card:hover::after {
+  @apply opacity-80;
 }
 
-.toast-exit-active {
-  opacity: 0;
-  transform: translateY(-20px) scale(0.9);
-  transition: all 0.2s ease-in;
+/* Glow effect for playing item */
+.playing-glow {
+  box-shadow: 0 0 20px rgba(255, 51, 129, 0.3),
+              0 0 40px rgba(255, 51, 129, 0.2),
+              0 0 60px rgba(255, 51, 129, 0.1);
+}
+
+/* EQ Vertical Slider */
+.eq-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.eq-slider::-webkit-slider-runnable-track {
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(to top, rgba(236, 72, 153, 0.3), rgba(168, 85, 247, 0.3));
+  border-radius: 2px;
+}
+
+.eq-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ec4899, #a855f7);
+  box-shadow: 0 0 10px rgba(236, 72, 153, 0.5);
+  margin-left: -6px;
+  cursor: grab;
+}
+
+.eq-slider::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.2);
+}
+
+.eq-slider::-moz-range-track {
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(to top, rgba(236, 72, 153, 0.3), rgba(168, 85, 247, 0.3));
+  border-radius: 2px;
+}
+
+.eq-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ec4899, #a855f7);
+  border: none;
+  box-shadow: 0 0 10px rgba(236, 72, 153, 0.5);
+}
+
+/* Mask for lyrics scroll */
+.lyrics-mask {
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 15%,
+    black 85%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 15%,
+    black 85%,
+    transparent 100%
+  );
+}
+
+/* macOS Desktop App Styles */
+@supports (-webkit-app-region: drag) {
+  /* Titlebar drag region */
+  .titlebar-drag {
+    -webkit-app-region: drag;
+  }
+
+  .titlebar-no-drag {
+    -webkit-app-region: no-drag;
+  }
+
+  /* Account for traffic lights on macOS */
+  .macos-titlebar-padding {
+    padding-top: 28px;
+  }
+
+  /* Sidebar adjustment for macOS traffic lights */
+  .sidebar-macos {
+    padding-top: 48px;
+  }
+}
+
+/* Electron-specific styles */
+.electron-app {
+  /* Prevent text selection for a more native feel */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.electron-app img,
+.electron-app button,
+.electron-app a {
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+/* Make text selectable where needed */
+.electron-app .selectable {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* Desktop hover effects - more subtle */
+@media (hover: hover) and (pointer: fine) {
+  .desktop-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  }
+
+  .desktop-card:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+  }
+}
+
+/* Window controls area reserved space */
+.window-controls-space {
+  width: 70px;
+  height: 28px;
+  flex-shrink: 0;
 }
