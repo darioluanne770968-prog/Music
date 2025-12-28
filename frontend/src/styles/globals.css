@@ -3,8 +3,11 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
+  /* 深色主题 (默认) */
+  :root,
+  .dark {
     --primary: 255, 51, 129;
+    --primary-color: #ff3381;
     --background: 15, 16, 21;
     --foreground: 246, 246, 247;
     --card: 26, 28, 37;
@@ -12,23 +15,118 @@
     --border: 42, 45, 58;
     --muted: 42, 45, 58;
     --muted-foreground: 158, 162, 181;
+    --dynamic-color: transparent;
+    --dynamic-rgb: 0, 0, 0;
     color-scheme: dark;
+  }
+
+  /* 浅色主题 */
+  .light {
+    --primary: 255, 51, 129;
+    --primary-color: #ff3381;
+    --background: 255, 255, 255;
+    --foreground: 15, 23, 42;
+    --card: 248, 250, 252;
+    --card-foreground: 15, 23, 42;
+    --border: 226, 232, 240;
+    --muted: 241, 245, 249;
+    --muted-foreground: 100, 116, 139;
+    --dynamic-color: transparent;
+    --dynamic-rgb: 0, 0, 0;
+    color-scheme: light;
+  }
+
+  /* 高对比度模式 */
+  .high-contrast {
+    --foreground: 255, 255, 255;
+    --muted-foreground: 220, 220, 220;
+    --border: 100, 100, 100;
+  }
+
+  .light.high-contrast {
+    --foreground: 0, 0, 0;
+    --muted-foreground: 30, 30, 30;
+    --border: 0, 0, 0;
+  }
+
+  /* 减少动画 */
+  .reduce-motion *,
+  .reduce-motion *::before,
+  .reduce-motion *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* 禁用动画 */
+  .no-animations *,
+  .no-animations *::before,
+  .no-animations *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  /* 粗体文字 */
+  .bold-text {
+    font-weight: 500;
+  }
+
+  .bold-text h1,
+  .bold-text h2,
+  .bold-text h3,
+  .bold-text h4,
+  .bold-text h5,
+  .bold-text h6 {
+    font-weight: 700;
+  }
+
+  /* 字体大小调节 */
+  [data-font-size="small"] { font-size: 14px; }
+  [data-font-size="medium"] { font-size: 16px; }
+  [data-font-size="large"] { font-size: 18px; }
+  [data-font-size="xlarge"] { font-size: 20px; }
+
+  /* 禁用背景模糊 */
+  .no-blur .backdrop-blur,
+  .no-blur .backdrop-blur-sm,
+  .no-blur .backdrop-blur-md,
+  .no-blur .backdrop-blur-lg,
+  .no-blur .backdrop-blur-xl,
+  .no-blur .backdrop-blur-2xl,
+  .no-blur .backdrop-blur-3xl {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
   }
 
   * {
     @apply border-dark-700;
   }
 
+  .light * {
+    border-color: rgb(var(--border));
+  }
+
   html {
     scroll-behavior: smooth;
-    color-scheme: dark;
   }
 
   body {
-    @apply bg-dark-950 text-white;
+    background-color: rgb(var(--background));
+    color: rgb(var(--foreground));
     font-feature-settings: "rlig" 1, "calt" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* 深色主题特定样式 */
+  .dark body {
+    @apply bg-dark-950 text-white;
+  }
+
+  /* 浅色主题特定样式 */
+  .light body {
+    @apply bg-white text-slate-900;
   }
 
   /* Custom scrollbar - 汽水音乐风格 */
@@ -466,4 +564,391 @@ input[type="range"]::-moz-range-thumb {
   width: 70px;
   height: 28px;
   flex-shrink: 0;
+}
+
+/* ==========================================
+   动态主题背景效果
+   ========================================== */
+.dynamic-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at 50% 0%,
+    color-mix(in srgb, var(--dynamic-color) 20%, transparent) 0%,
+    transparent 70%
+  );
+  opacity: 0.5;
+  transition: background 1s ease;
+}
+
+.dynamic-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at 80% 80%,
+    color-mix(in srgb, var(--dynamic-color) 10%, transparent) 0%,
+    transparent 50%
+  );
+}
+
+/* ==========================================
+   页面切换动画
+   ========================================== */
+.page-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms ease, transform 300ms ease;
+}
+
+.page-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.page-exit-active {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+
+/* Slide animations */
+.slide-left-enter {
+  transform: translateX(100%);
+}
+
+.slide-left-enter-active {
+  transform: translateX(0);
+  transition: transform 300ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.slide-left-exit {
+  transform: translateX(0);
+}
+
+.slide-left-exit-active {
+  transform: translateX(-30%);
+  transition: transform 300ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.slide-right-enter {
+  transform: translateX(-100%);
+}
+
+.slide-right-enter-active {
+  transform: translateX(0);
+  transition: transform 300ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* ==========================================
+   骨架屏加载动画
+   ========================================== */
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.light .skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.05) 0%,
+    rgba(0, 0, 0, 0.1) 50%,
+    rgba(0, 0, 0, 0.05) 100%
+  );
+  background-size: 200% 100%;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ==========================================
+   手势交互反馈
+   ========================================== */
+.touch-feedback {
+  position: relative;
+  overflow: hidden;
+}
+
+.touch-feedback::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at var(--touch-x, 50%) var(--touch-y, 50%), rgba(255,255,255,0.3) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.touch-feedback:active::after {
+  opacity: 1;
+}
+
+/* ==========================================
+   浅色主题适配
+   ========================================== */
+.light .glass {
+  @apply bg-white/80 backdrop-blur-xl border border-black/5;
+}
+
+.light .glass-card {
+  @apply bg-white/60 backdrop-blur-lg rounded-2xl border border-black/5;
+}
+
+.light .glass-button {
+  @apply bg-black/5 backdrop-blur-sm hover:bg-black/10 transition-colors;
+}
+
+.light .card {
+  @apply bg-slate-50 rounded-2xl border border-slate-200;
+}
+
+.light .card-hover {
+  @apply hover:bg-slate-100 hover:border-slate-300;
+}
+
+.light .nav-item {
+  @apply text-slate-600 hover:text-slate-900 hover:bg-slate-100;
+}
+
+.light .nav-item.active {
+  @apply bg-slate-200 text-slate-900;
+}
+
+.light .btn-secondary {
+  @apply bg-slate-100 text-slate-900 hover:bg-slate-200;
+}
+
+.light .btn-ghost {
+  @apply text-slate-500 hover:text-slate-900 hover:bg-slate-100;
+}
+
+.light .input {
+  @apply border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400;
+}
+
+.light ::-webkit-scrollbar-thumb {
+  @apply bg-black/10;
+}
+
+.light ::-webkit-scrollbar-thumb:hover {
+  @apply bg-black/20;
+}
+
+/* ==========================================
+   下拉刷新动画
+   ========================================== */
+.pull-to-refresh {
+  position: relative;
+  overflow: hidden;
+}
+
+.pull-indicator {
+  position: absolute;
+  top: -50px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: top 0.2s, opacity 0.2s;
+}
+
+.pull-indicator.active {
+  top: 10px;
+  opacity: 1;
+}
+
+.pull-indicator svg {
+  animation: spin 1s linear infinite;
+}
+
+/* ==========================================
+   长按菜单动画
+   ========================================== */
+@keyframes context-menu-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.context-menu {
+  animation: context-menu-in 0.15s ease-out;
+  transform-origin: var(--origin-x, 50%) var(--origin-y, 0%);
+}
+
+/* ==========================================
+   震动反馈样式（配合触觉反馈）
+   ========================================== */
+@keyframes haptic-feedback {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
+}
+
+.haptic-feedback {
+  animation: haptic-feedback 0.1s ease-in-out;
+}
+
+/* ==========================================
+   滑动切歌动画
+   ========================================== */
+.swipe-track {
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.swipe-track.swiping {
+  transition: none !important;
+}
+
+.swipe-left-hint,
+.swipe-right-hint {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+
+.swipe-left-hint {
+  left: 20px;
+}
+
+.swipe-right-hint {
+  right: 20px;
+}
+
+.swiping .swipe-left-hint,
+.swiping .swipe-right-hint {
+  opacity: 1;
+}
+
+/* ==========================================
+   弹性过渡动画
+   ========================================== */
+.spring-bounce {
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.spring-smooth {
+  transition: all 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* ==========================================
+   播放按钮脉冲效果
+   ========================================== */
+@keyframes play-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(var(--primary), 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 20px rgba(var(--primary), 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(var(--primary), 0);
+  }
+}
+
+.play-pulse {
+  animation: play-pulse 2s infinite;
+}
+
+/* ==========================================
+   列表项进入动画
+   ========================================== */
+@keyframes list-item-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.list-item-animated {
+  animation: list-item-in 0.3s ease forwards;
+  animation-delay: calc(var(--index, 0) * 50ms);
+  opacity: 0;
+}
+
+/* ==========================================
+   卡片悬停3D效果
+   ========================================== */
+.card-3d {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
+
+.card-3d-inner {
+  transition: transform 0.3s ease;
+  transform-style: preserve-3d;
+}
+
+.card-3d:hover .card-3d-inner {
+  transform: rotateY(5deg) rotateX(5deg);
+}
+
+/* ==========================================
+   音乐波形动画
+   ========================================== */
+@keyframes wave-bar {
+  0%, 100% { transform: scaleY(0.5); }
+  50% { transform: scaleY(1); }
+}
+
+.wave-bar {
+  animation: wave-bar 0.8s ease-in-out infinite;
+}
+
+.wave-bar:nth-child(1) { animation-delay: 0s; }
+.wave-bar:nth-child(2) { animation-delay: 0.1s; }
+.wave-bar:nth-child(3) { animation-delay: 0.2s; }
+.wave-bar:nth-child(4) { animation-delay: 0.3s; }
+.wave-bar:nth-child(5) { animation-delay: 0.4s; }
+
+/* ==========================================
+   加载进度条
+   ========================================== */
+.progress-indeterminate {
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-indeterminate::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(var(--primary), 0.5) 50%, transparent 100%);
+  animation: progress-slide 1.5s infinite;
+}
+
+@keyframes progress-slide {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }

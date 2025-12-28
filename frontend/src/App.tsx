@@ -1,12 +1,16 @@
-import React, { Suspense, lazy } from 'react'
+import React, { Suspense, lazy, useState } from 'react'
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
+import { AnimatePresence, motion } from 'framer-motion'
 import { MiniPlayer } from '@/components/Player/MiniPlayer'
 import { FullPlayer } from '@/components/Player/FullPlayer'
 import { PlayQueue } from '@/components/Player/PlayQueue'
 import { Sidebar } from '@/components/Layout/Sidebar'
+import { ThemeProvider, DynamicTheme, ThemeSettings } from '@/components/Theme'
 import { usePlayerStore } from '@/stores/playerStore'
+import { useThemeStore } from '@/stores/themeStore'
 import { useAudio } from '@/hooks/useAudio'
+import { HomePageSkeleton } from '@/components/common/Skeleton'
 
 // Lazy load pages
 const HomePage = lazy(() => import('@/pages/Home/HomePage'))
@@ -26,12 +30,36 @@ const SmartPlaylistPage = lazy(() => import('@/pages/SmartPlaylist/SmartPlaylist
 const RecognitionPage = lazy(() => import('@/pages/Recognition/RecognitionPage'))
 const ListenTogetherPage = lazy(() => import('@/pages/ListenTogether/ListenTogetherPage'))
 
-// Loading fallback
+// Loading fallback with skeleton
 const PageLoader = () => (
-  <div className="min-h-screen flex items-center justify-center">
-    <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary-500 border-t-transparent" />
+  <div className="min-h-screen animate-fade-in">
+    <HomePageSkeleton />
   </div>
 )
+
+// Page transition wrapper
+const PageTransitionWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const location = useLocation()
+  const { animations, accessibility } = useThemeStore()
+
+  if (!animations.enabled || !animations.pageTransitions || accessibility.reducedMotion) {
+    return <>{children}</>
+  }
+
+  return (
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={location.pathname}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -10 }}
+        transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
+      >
+        {children}
+      </motion.div>
+    </AnimatePresence>
+  )
+}
 
 // Bottom Navigation (mobile only)
 const BottomNav: React.FC = () => {
@@ -107,70 +135,107 @@ const BottomNav: React.FC = () => {
 // Main App
 const App: React.FC = () => {
   const { currentSong, isFullScreen, isShowQueue, setShowQueue } = usePlayerStore()
+  const { resolvedTheme, dynamicTheme } = useThemeStore()
+  const [isThemeSettingsOpen, setIsThemeSettingsOpen] = useState(false)
 
   // Initialize audio playback
   useAudio()
 
   return (
-    <div className="min-h-screen bg-dark-950">
-      {/* Play Queue Drawer */}
-      <PlayQueue isOpen={isShowQueue} onClose={() => setShowQueue(false)} />
-      {/* Toast notifications */}
-      <Toaster
-        position="top-center"
-        toastOptions={{
-          duration: 3000,
-          style: {
-            background: '#1a1c25',
-            color: '#fff',
-            borderRadius: '12px',
-            border: '1px solid rgba(255,255,255,0.1)',
-          },
-        }}
-      />
+    <ThemeProvider>
+      <div className={`min-h-screen transition-colors duration-300 ${
+        resolvedTheme === 'dark' ? 'bg-dark-950' : 'bg-white'
+      }`}>
+        {/* Dynamic theme background */}
+        {dynamicTheme.enabled && <div className="dynamic-bg" />}
 
-      {/* Desktop Sidebar */}
-      {!isFullScreen && <Sidebar />}
+        {/* Dynamic theme color extractor */}
+        <DynamicTheme />
 
-      {/* Main content area */}
-      <div className={`${!isFullScreen ? 'lg:ml-64' : ''}`}>
-        {/* Main content */}
-        <main className={`
-          ${currentSong && !isFullScreen ? 'pb-32 lg:pb-24' : 'pb-16 lg:pb-0'}
-        `}>
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/search" element={<SearchPage />} />
-              <Route path="/explore" element={<ExplorePage />} />
-              <Route path="/library" element={<LibraryPage />} />
-              <Route path="/playlist/:id" element={<PlaylistPage />} />
-              <Route path="/artist/:id" element={<ArtistPage />} />
-              <Route path="/album/:id" element={<AlbumPage />} />
-              <Route path="/toplist" element={<ToplistPage />} />
-              <Route path="/daily" element={<DailyPage />} />
-              <Route path="/fm" element={<FMPage />} />
-              <Route path="/mv/:id" element={<MVPage />} />
-              <Route path="/stats" element={<StatsPage />} />
-              <Route path="/downloads" element={<DownloadsPage />} />
-              <Route path="/smart-playlist" element={<SmartPlaylistPage />} />
-              <Route path="/recognition" element={<RecognitionPage />} />
-              <Route path="/listen-together" element={<ListenTogetherPage />} />
-              <Route path="/profile" element={<LibraryPage />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Suspense>
-        </main>
+        {/* Play Queue Drawer */}
+        <PlayQueue isOpen={isShowQueue} onClose={() => setShowQueue(false)} />
 
-        {/* Mini player - fixed at bottom, offset for sidebar on desktop */}
-        {currentSong && !isFullScreen && <MiniPlayer />}
+        {/* Theme Settings Modal */}
+        <ThemeSettings isOpen={isThemeSettingsOpen} onClose={() => setIsThemeSettingsOpen(false)} />
+
+        {/* Toast notifications */}
+        <Toaster
+          position="top-center"
+          toastOptions={{
+            duration: 3000,
+            style: {
+              background: resolvedTheme === 'dark' ? '#1a1c25' : '#ffffff',
+              color: resolvedTheme === 'dark' ? '#fff' : '#0f172a',
+              borderRadius: '12px',
+              border: resolvedTheme === 'dark' ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)',
+            },
+          }}
+        />
+
+        {/* Desktop Sidebar */}
+        {!isFullScreen && <Sidebar onOpenThemeSettings={() => setIsThemeSettingsOpen(true)} />}
+
+        {/* Main content area */}
+        <div className={`${!isFullScreen ? 'lg:ml-64' : ''}`}>
+          {/* Main content */}
+          <main className={`
+            ${currentSong && !isFullScreen ? 'pb-32 lg:pb-24' : 'pb-16 lg:pb-0'}
+          `}>
+            <Suspense fallback={<PageLoader />}>
+              <PageTransitionWrapper>
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/search" element={<SearchPage />} />
+                  <Route path="/explore" element={<ExplorePage />} />
+                  <Route path="/library" element={<LibraryPage />} />
+                  <Route path="/playlist/:id" element={<PlaylistPage />} />
+                  <Route path="/artist/:id" element={<ArtistPage />} />
+                  <Route path="/album/:id" element={<AlbumPage />} />
+                  <Route path="/toplist" element={<ToplistPage />} />
+                  <Route path="/daily" element={<DailyPage />} />
+                  <Route path="/fm" element={<FMPage />} />
+                  <Route path="/mv/:id" element={<MVPage />} />
+                  <Route path="/stats" element={<StatsPage />} />
+                  <Route path="/downloads" element={<DownloadsPage />} />
+                  <Route path="/smart-playlist" element={<SmartPlaylistPage />} />
+                  <Route path="/recognition" element={<RecognitionPage />} />
+                  <Route path="/listen-together" element={<ListenTogetherPage />} />
+                  <Route path="/profile" element={<LibraryPage />} />
+                  <Route path="/settings" element={<SettingsPage onOpenThemeSettings={() => setIsThemeSettingsOpen(true)} />} />
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </PageTransitionWrapper>
+            </Suspense>
+          </main>
+
+          {/* Mini player - fixed at bottom, offset for sidebar on desktop */}
+          {currentSong && !isFullScreen && <MiniPlayer />}
+        </div>
+
+        {/* Bottom navigation (mobile only) */}
+        {!isFullScreen && <BottomNav />}
+
+        {/* Full screen player */}
+        <FullPlayer />
       </div>
+    </ThemeProvider>
+  )
+}
 
-      {/* Bottom navigation (mobile only) */}
-      {!isFullScreen && <BottomNav />}
-
-      {/* Full screen player */}
-      <FullPlayer />
+// Placeholder for settings page
+const SettingsPage: React.FC<{ onOpenThemeSettings: () => void }> = ({ onOpenThemeSettings }) => {
+  return (
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-6">设置</h1>
+      <button
+        onClick={onOpenThemeSettings}
+        className="w-full p-4 bg-white/5 rounded-xl text-left flex items-center justify-between hover:bg-white/10 transition-colors"
+      >
+        <span>外观设置</span>
+        <svg className="w-5 h-5 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
     </div>
   )
 }
