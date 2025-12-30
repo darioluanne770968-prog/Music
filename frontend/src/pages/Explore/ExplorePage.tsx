@@ -105,7 +105,8 @@ const ExplorePage: React.FC = () => {
               key={cat.id}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className={`bg-gradient-to-br ${cat.color} rounded-xl p-4 cursor-pointer`}
+              onClick={() => navigate(`/explore/category/${cat.id}?name=${encodeURIComponent(cat.name)}`)}
+              className={`bg-gradient-to-br ${cat.color} rounded-xl p-4 cursor-pointer active:opacity-80`}
             >
               <div className="text-2xl mb-2">{cat.icon}</div>
               <div className="text-white font-medium">{cat.name}</div>

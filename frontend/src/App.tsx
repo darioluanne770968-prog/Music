@@ -16,6 +16,7 @@ import { HomePageSkeleton } from '@/components/common/Skeleton'
 const HomePage = lazy(() => import('@/pages/Home/HomePage'))
 const SearchPage = lazy(() => import('@/pages/Search/SearchPage'))
 const ExplorePage = lazy(() => import('@/pages/Explore/ExplorePage'))
+const CategoryPage = lazy(() => import('@/pages/Explore/CategoryPage'))
 const LibraryPage = lazy(() => import('@/pages/Library/LibraryPage'))
 const PlaylistPage = lazy(() => import('@/pages/Playlist/PlaylistPage'))
 const ArtistPage = lazy(() => import('@/pages/Artist/ArtistPage'))
@@ -187,6 +188,7 @@ const App: React.FC = () => {
                   <Route path="/" element={<HomePage />} />
                   <Route path="/search" element={<SearchPage />} />
                   <Route path="/explore" element={<ExplorePage />} />
+                  <Route path="/explore/category/:id" element={<CategoryPage />} />
                   <Route path="/library" element={<LibraryPage />} />
                   <Route path="/playlist/:id" element={<PlaylistPage />} />
                   <Route path="/artist/:id" element={<ArtistPage />} />

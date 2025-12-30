@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { usePlayerStore } from '@/stores/playerStore'
 import { useUserStore } from '@/stores/userStore'
 import { getGreeting, formatNumber } from '@/utils/format'
@@ -45,10 +45,49 @@ interface AlbumItem {
 const CATEGORIES = ['推荐', '华语', '欧美', '日韩', '电子', '说唱', '民谣', '摇滚', '古典']
 
 export const HomePage: React.FC = () => {
+  const navigate = useNavigate()
   const { user } = useUserStore()
   const { setQueue } = usePlayerStore()
   const [activeCategory, setActiveCategory] = useState('推荐')
   const [currentBanner, setCurrentBanner] = useState(0)
+
+  // 处理 Banner 点击
+  const handleBannerClick = (banner: Banner) => {
+    // targetType: 1=歌曲, 10=专辑, 1000=歌单, 3000=外链
+    console.log('Banner clicked:', banner.targetType, banner.targetId, banner.typeTitle)
+    switch (banner.targetType) {
+      case 1:
+        // 播放歌曲
+        api.getSongDetail(banner.targetId).then(res => {
+          if (res?.songs?.[0]) {
+            const song = api.formatSong(res.songs[0])
+            setQueue([song], 0)
+          }
+        })
+        break
+      case 10:
+        navigate(`/album/${banner.targetId}`)
+        break
+      case 1000:
+        navigate(`/playlist/${banner.targetId}`)
+        break
+      case 3000:
+        // 外链，忽略
+        break
+      default:
+        // 尝试作为歌曲播放
+        if (banner.targetId) {
+          api.getSongDetail(banner.targetId).then(res => {
+            if (res?.songs?.[0]) {
+              const song = api.formatSong(res.songs[0])
+              setQueue([song], 0)
+            }
+          }).catch(() => {
+            console.log('Failed to play as song')
+          })
+        }
+    }
+  }
 
   const [banners, setBanners] = useState<Banner[]>([])
   const [playlists, setPlaylists] = useState<PlaylistItem[]>([])
@@ -232,18 +271,20 @@ export const HomePage: React.FC = () => {
                 {banners.map((banner, index) => (
                   <motion.div
                     key={index}
-                    className="absolute inset-0"
+                    className={`absolute inset-0 cursor-pointer ${index !== currentBanner ? 'pointer-events-none' : ''}`}
+                    style={{ zIndex: index === currentBanner ? 10 : 0 }}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: index === currentBanner ? 1 : 0 }}
                     transition={{ duration: 0.5 }}
+                    onClick={() => handleBannerClick(banner)}
                   >
                     <img
                       src={banner.imageUrl}
                       alt={banner.typeTitle}
                       className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                    <span className="absolute bottom-4 left-4 px-2 py-1 rounded bg-primary-500/80 text-xs text-white">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+                    <span className="absolute bottom-4 left-4 px-2 py-1 rounded bg-primary-500/80 text-xs text-white pointer-events-none">
                       {banner.typeTitle}
                     </span>
                   </motion.div>
