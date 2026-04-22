@@ -94,7 +94,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenThemeSettings }) => {
       </div>
 
       {/* Search */}
-      <div className="px-4 mb-4">
+      <div className="px-4 mb-4 flex-shrink-0">
         <button
           onClick={() => navigate('/search')}
           className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white/40 hover:text-white/60 transition-colors"
@@ -107,6 +107,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenThemeSettings }) => {
         </button>
       </div>
 
+      {/* Scrollable Navigation Area */}
+      <div className="flex-1 overflow-y-auto scrollbar-thin">
       {/* Main Navigation */}
       <nav className="px-3 mb-6">
         <div className="text-xs font-medium text-white/30 px-3 mb-2">发现音乐</div>
@@ -202,8 +204,83 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenThemeSettings }) => {
         </button>
       </nav>
 
+      {/* 创作工具 */}
+      <nav className="px-3 mb-4">
+        <div className="text-xs font-medium text-white/30 px-3 mb-2">创作工具</div>
+        <button
+          onClick={() => navigate('/ai-composer')}
+          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-colors ${location.pathname === '/ai-composer' ? 'bg-white/10 text-white' : ''}`}
+        >
+          <span className="text-base">🎼</span>
+          <span className="text-sm">AI 作曲</span>
+        </button>
+        <button
+          onClick={() => navigate('/sheet-editor')}
+          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-colors ${location.pathname === '/sheet-editor' ? 'bg-white/10 text-white' : ''}`}
+        >
+          <span className="text-base">🎵</span>
+          <span className="text-sm">乐谱编辑</span>
+        </button>
+        <button
+          onClick={() => navigate('/mv-creator')}
+          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-colors ${location.pathname === '/mv-creator' ? 'bg-white/10 text-white' : ''}`}
+        >
+          <span className="text-base">🎬</span>
+          <span className="text-sm">MV 创作</span>
+        </button>
+        <button
+          onClick={() => navigate('/podcast-studio')}
+          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-colors ${location.pathname === '/podcast-studio' ? 'bg-white/10 text-white' : ''}`}
+        >
+          <span className="text-base">🎙️</span>
+          <span className="text-sm">播客工作室</span>
+        </button>
+        <button
+          onClick={() => navigate('/white-noise')}
+          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-colors ${location.pathname === '/white-noise' ? 'bg-white/10 text-white' : ''}`}
+        >
+          <span className="text-base">🌊</span>
+          <span className="text-sm">白噪音</span>
+        </button>
+        <button
+          onClick={() => navigate('/smart-scene')}
+          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-colors ${location.pathname === '/smart-scene' ? 'bg-white/10 text-white' : ''}`}
+        >
+          <span className="text-base">🎯</span>
+          <span className="text-sm">智能场景</span>
+        </button>
+        <button
+          onClick={() => navigate('/music-learning')}
+          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-colors ${location.pathname === '/music-learning' ? 'bg-white/10 text-white' : ''}`}
+        >
+          <span className="text-base">📚</span>
+          <span className="text-sm">音乐学习</span>
+        </button>
+        <button
+          onClick={() => navigate('/creator-economy')}
+          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-colors ${location.pathname === '/creator-economy' ? 'bg-white/10 text-white' : ''}`}
+        >
+          <span className="text-base">💰</span>
+          <span className="text-sm">创作者中心</span>
+        </button>
+        <button
+          onClick={() => navigate('/music-nft')}
+          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-colors ${location.pathname === '/music-nft' ? 'bg-white/10 text-white' : ''}`}
+        >
+          <span className="text-base">🎨</span>
+          <span className="text-sm">音乐 NFT</span>
+        </button>
+        <button
+          onClick={() => navigate('/metaverse')}
+          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-colors ${location.pathname === '/metaverse' ? 'bg-white/10 text-white' : ''}`}
+        >
+          <span className="text-base">🌐</span>
+          <span className="text-sm">元宇宙</span>
+        </button>
+      </nav>
+
       {/* Playlists */}
-      <nav className="px-3 flex-1 overflow-y-auto scrollbar-thin">
+      <nav className="px-3 mb-4">
         <div className="text-xs font-medium text-white/30 px-3 mb-2">我的音乐</div>
         {playlistItems.map((item) => (
           <button
@@ -228,6 +305,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenThemeSettings }) => {
           <span className="text-sm">创建歌单</span>
         </button>
       </nav>
+      </div>
 
       {/* User Section */}
       <div className="p-4 border-t border-white/5">

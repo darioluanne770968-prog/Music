@@ -437,7 +437,7 @@ const PreviewCanvas: React.FC<{
       ref={canvasRef}
       width={960}
       height={540}
-      className="w-full bg-black rounded-xl"
+      className="max-w-full max-h-full bg-black rounded-xl object-contain"
     />
   );
 };
@@ -726,9 +726,9 @@ export const MVCreator: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex h-[calc(100vh-56px)]">
+      <div className="flex h-[calc(100vh-56px)] overflow-hidden">
         {/* 左侧面板 */}
-        <div className="w-80 bg-slate-800/50 border-r border-slate-700 p-4 overflow-y-auto">
+        <div className="w-80 flex-shrink-0 bg-slate-800/50 border-r border-slate-700 p-4 overflow-y-auto">
           {/* 标签切换 */}
           <div className="flex gap-1 mb-4 bg-slate-800 rounded-lg p-1">
             {(['templates', 'effects', 'text', 'media'] as const).map(tab => (
@@ -858,9 +858,9 @@ export const MVCreator: React.FC = () => {
         </div>
 
         {/* 中间预览区 */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           {/* 预览 */}
-          <div className="flex-1 p-4 flex items-center justify-center">
+          <div className="flex-1 p-4 flex items-center justify-center overflow-hidden">
             <PreviewCanvas project={project} currentTime={currentTime} />
           </div>
 

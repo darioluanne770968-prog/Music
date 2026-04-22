@@ -31,6 +31,18 @@ const SmartPlaylistPage = lazy(() => import('@/pages/SmartPlaylist/SmartPlaylist
 const RecognitionPage = lazy(() => import('@/pages/Recognition/RecognitionPage'))
 const ListenTogetherPage = lazy(() => import('@/pages/ListenTogether/ListenTogetherPage'))
 
+// 新增高级功能组件
+const ComposerAIPage = lazy(() => import('@/components/AI/ComposerAI'))
+const WhiteNoisePage = lazy(() => import('@/components/Ambient/WhiteNoiseGenerator'))
+const CreatorEconomyPage = lazy(() => import('@/components/Economy/CreatorEconomy'))
+const SheetMusicEditorPage = lazy(() => import('@/components/Editor/SheetMusicEditor'))
+const MusicLearningPage = lazy(() => import('@/components/Learning/MusicLearning'))
+const MetaversePage = lazy(() => import('@/components/Metaverse/MetaverseMusicSpace'))
+const MusicNFTPage = lazy(() => import('@/components/NFT/MusicNFT'))
+const PodcastStudioPage = lazy(() => import('@/components/Podcast/PodcastStudio'))
+const SmartScenePage = lazy(() => import('@/components/Scene/SmartScene'))
+const MVCreatorPage = lazy(() => import('@/components/Video/MVCreator'))
+
 // Loading fallback with skeleton
 const PageLoader = () => (
   <div className="min-h-screen animate-fade-in">
@@ -204,6 +216,17 @@ const App: React.FC = () => {
                   <Route path="/listen-together" element={<ListenTogetherPage />} />
                   <Route path="/profile" element={<LibraryPage />} />
                   <Route path="/settings" element={<SettingsPage onOpenThemeSettings={() => setIsThemeSettingsOpen(true)} />} />
+                  {/* 高级功能路由 */}
+                  <Route path="/ai-composer" element={<ComposerAIPage />} />
+                  <Route path="/white-noise" element={<WhiteNoisePage />} />
+                  <Route path="/creator-economy" element={<CreatorEconomyPage />} />
+                  <Route path="/sheet-editor" element={<SheetMusicEditorPage />} />
+                  <Route path="/music-learning" element={<MusicLearningPage />} />
+                  <Route path="/metaverse" element={<MetaversePage />} />
+                  <Route path="/music-nft" element={<MusicNFTPage />} />
+                  <Route path="/podcast-studio" element={<PodcastStudioPage />} />
+                  <Route path="/smart-scene" element={<SmartScenePage />} />
+                  <Route path="/mv-creator" element={<MVCreatorPage />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </PageTransitionWrapper>
